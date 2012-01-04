@@ -61,6 +61,8 @@ float SwitchPanelFlightLoopCallback(float inElapsedSinceLastCall,
                                     int inCounter,
                                     void* inRefcon);
 
+void mp_do_init();
+
 //logfile* gLogFile;
 //char gLogFilePath[512] = {};
 
@@ -534,6 +536,8 @@ XPluginStart(char* outName, char* outSig, char* outDesc) {
     *x = MP_BLANK_SCRN;
     gMp_ojq.post(new myjob(x));
 
+    mp_do_init();
+
     return 1;
 }
 
@@ -834,8 +838,8 @@ int SwitchPanelCommandHandler(XPLMCommandRef   inCommand,
                              XPLMCommandPhase  inPhase,
                              void*             inRefcon) {
     uint32_t* m;
-    uint32_t x;
-    float f;
+//    uint32_t x;
+//    float f;
     int status = MP_CMD_PASS_EVENT;
     LPRINTF("Saitek ProPanels Plugin: switch panel lights landing on\n");
 
@@ -1025,7 +1029,7 @@ float RadioPanelFlightLoopCallback(float   inElapsedSinceLastCall,
 //     static char tmp[100];
 // #endif
 
-    uint32_t x;
+//    uint32_t x;
     int msg_cnt = gRp_MsgProc_Cnt;
 
 //    if ((gFlCbCnt % PANEL_CHECK_INTERVAL) == 0) {
@@ -1449,118 +1453,131 @@ XPluginEnable(void) {
 }
 
 
+void mp_do_init() {
+    float f;
+    int32_t t;
+    uint32_t* m;
+    uint32_t* x;
+
+    if (gPlaneLoaded) {
+        // not the user's plane
+        return;
+    }
+    pexchange((int*)&gPlaneLoaded, true); // always first
+    x = new uint32_t;
+//    if (XPLMGetDatai(gAvPwrOnDataRef)) {
+        pexchange((int*)&gAvPwrOn, true);
+        *x = AVIONICS_ON;
+        gMp_ojq.post(new myjob(x));
+//    } else {
+//        pexchange((int*)&gAvPwrOn, false);
+//        *x = AVIONICS_OFF;
+//        gMp_ojq.post(new myjob(x));
+//    }
+    x = new uint32_t;
+//    if (XPLMGetDatai(gBatPwrOnDataRef)) {
+        pexchange((int*)&gBat1On, true);
+        *x = BAT1_ON;
+        gMp_ojq.post(new myjob(x));
+//    } else {
+//        pexchange((int*)&gBat1On, false);
+//        *x = BAT1_OFF;
+//        gMp_ojq.post(new myjob(x));
+//    }
+    // ALT val init
+    m = new uint32_t[MP_MPM_CNT];
+    m[0] = MP_MPM;
+    m[1] = MP_ALT_VAL;
+    m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpAltHoldFtDataRef));
+    gMp_ojq.post(new myjob(m));
+    // VS val init
+    m = new uint32_t[MP_MPM_CNT];
+    f = XPLMGetDataf(gMpVrtVelDataRef);
+    m[1] = (f < 0) ? MP_VS_VAL_NEG : MP_VS_VAL_POS;
+    m[0] = MP_MPM;
+    m[2] = static_cast<uint32_t>(fabs(f));
+    gMp_ojq.post(new myjob(m));
+    // IAS val init
+    m = new uint32_t[MP_MPM_CNT];
+    m[0] = MP_MPM;
+    m[1] = MP_IAS_VAL;
+    m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpArspdDataRef));
+    gMp_ojq.post(new myjob(m));
+    // HDG val init
+    m = new uint32_t[MP_MPM_CNT];
+    m[0] = MP_MPM;
+    m[1] = MP_HDG_VAL;
+    m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpHdgMagDataRef));
+    gMp_ojq.post(new myjob(m));
+    // CRS val init
+    x = new uint32_t;
+    m[0] = MP_MPM;
+    m[1] = MP_CRS_VAL;
+    m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpHsiObsDegMagPltDataRef));
+    gMp_ojq.post(new myjob(m));
+    //--- buttons
+    // AP button
+    x = new uint32_t;
+    t = XPLMGetDatai(gMpFlghtDirModeDataRef);
+    *x = (t == 0) ? MP_BTN_AP_OFF : ((t == 2) ? MP_BTN_AP_ON : MP_BTN_AP_ARMED);
+//    t = XPLMGetDatai(gMpApOnDataRef);
+//    *x = (t == 0) ? MP_BTN_AP_OFF : MP_BTN_AP_ON;
+    gMp_ojq.post(new myjob(x));
+    // ALT button
+    x = new uint32_t;
+    t = XPLMGetDatai(gMpAltHoldStatDataRef);
+    *x = (t == 0) ? MP_BTN_ALT_OFF : ((t == 2) ? MP_BTN_ALT_CAPT : MP_BTN_ALT_ARMED);
+    gMp_ojq.post(new myjob(x));
+    // APR button
+    x = new uint32_t;
+    t = XPLMGetDatai(gMpApprchStatDataRef);
+    *x = (t == 0) ? MP_BTN_APR_OFF : ((t == 2) ? MP_BTN_APR_CAPT : MP_BTN_APR_ARMED);
+    gMp_ojq.post(new myjob(x));
+    // REV button
+    x = new uint32_t;
+    t = XPLMGetDatai(gMpBckCrsStatDataRef);
+    *x = (t == 0) ? MP_BTN_REV_OFF : ((t == 2) ? MP_BTN_REV_CAPT : MP_BTN_REV_ARMED);
+    gMp_ojq.post(new myjob(x));
+    // HDG button
+    x = new uint32_t;
+    t = XPLMGetDatai(gMpHdgStatDataRef);
+    *x = (t == 0) ? MP_BTN_HDG_OFF : ((t == 2) ? MP_BTN_HDG_CAPT : MP_BTN_HDG_ARMED);
+    gMp_ojq.post(new myjob(x));
+    // NAV button
+    x = new uint32_t;
+    t = XPLMGetDatai(gMpNavStatDataRef);
+    *x = (t == 0) ? MP_BTN_NAV_OFF : ((t == 2) ? MP_BTN_NAV_CAPT : MP_BTN_NAV_ARMED);
+    gMp_ojq.post(new myjob(x));
+    // IAS button
+    x = new uint32_t;
+    t = XPLMGetDatai(gMpSpdStatDataRef);
+    *x = (t == 0) ? MP_BTN_IAS_OFF : ((t == 2) ? MP_BTN_IAS_CAPT : MP_BTN_IAS_ARMED);
+    gMp_ojq.post(new myjob(x));
+    // VS button
+    x = new uint32_t;
+    t = XPLMGetDatai(gMpVviStatDataRef);
+    *x = (t == 0) ? MP_BTN_VS_OFF : ((t == 2) ? MP_BTN_VS_CAPT : MP_BTN_VS_ARMED);
+    gMp_ojq.post(new myjob(x));
+}
+
+
 /*
  *
  */
 PLUGIN_API void
 XPluginReceiveMessage(XPLMPluginID inFrom, long inMsg, void* inParam) {
 //    LPRINTF("Saitek ProPanels Plugin: XPluginReceiveMessage\n");
-    float f;
-    int32_t t;
-    uint32_t* m;
+
     uint32_t* x;
     if (inFrom == XPLM_PLUGIN_XPLANE) {
+    int inparam = reinterpret_cast<int>(inParam);
         switch (inMsg) {
         case XPLM_MSG_PLANE_LOADED:
-            if ((int)inParam != 0) {
+            if (inparam != 0 || gPlaneLoaded) {
                 // not the user's plane
                 break;
             }
-            pexchange((int*)&gPlaneLoaded, true); // always first
-            x = new uint32_t;
-            if ((bool)XPLMGetDatai(gAvPwrOnDataRef)) {
-                pexchange((int*)&gAvPwrOn, true);
-                *x = AVIONICS_ON;
-                gMp_ojq.post(new myjob(x));
-            } else {
-                pexchange((int*)&gAvPwrOn, false);
-                *x = AVIONICS_OFF;
-                gMp_ojq.post(new myjob(x));
-            }
-            x = new uint32_t;
-            if ((bool)XPLMGetDatai(gBatPwrOnDataRef)) {
-                pexchange((int*)&gBat1On, true);
-                *x = BAT1_ON;
-                gMp_ojq.post(new myjob(x));
-            } else {
-                pexchange((int*)&gBat1On, false);
-                *x = BAT1_OFF;
-                gMp_ojq.post(new myjob(x));
-            }
-            // ALT val init
-            m = new uint32_t[MP_MPM_CNT];
-            m[0] = MP_MPM;
-            m[1] = MP_ALT_VAL;
-            m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpAltHoldFtDataRef));
-            gMp_ojq.post(new myjob(m));
-            // VS val init
-            m = new uint32_t[MP_MPM_CNT];
-            f = XPLMGetDataf(gMpVrtVelDataRef);
-            m[1] = (f < 0) ? MP_VS_VAL_NEG : MP_VS_VAL_POS;
-            m[0] = MP_MPM;
-            m[2] = static_cast<uint32_t>(fabs(f));
-            gMp_ojq.post(new myjob(m));
-            // IAS val init
-            m = new uint32_t[MP_MPM_CNT];
-            m[0] = MP_MPM;
-            m[1] = MP_IAS_VAL;
-            m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpArspdDataRef));
-            gMp_ojq.post(new myjob(m));
-            // HDG val init
-            m = new uint32_t[MP_MPM_CNT];
-            m[0] = MP_MPM;
-            m[1] = MP_HDG_VAL;
-            m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpHdgMagDataRef));
-            gMp_ojq.post(new myjob(m));
-            // CRS val init
-            x = new uint32_t;
-            m[0] = MP_MPM;
-            m[1] = MP_CRS_VAL;
-            m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpHsiObsDegMagPltDataRef));
-            gMp_ojq.post(new myjob(m));
-            //--- buttons
-            // AP button
-            x = new uint32_t;
-            t = XPLMGetDatai(gMpFlghtDirModeDataRef);
-            *x = (t == 0) ? MP_BTN_AP_OFF : ((t == 2) ? MP_BTN_AP_ON : MP_BTN_AP_ARMED);
-//            t = XPLMGetDatai(gMpApOnDataRef);
-//            *x = (t == 0) ? MP_BTN_AP_OFF : MP_BTN_AP_ON;
-            gMp_ojq.post(new myjob(x));
-            // ALT button
-            x = new uint32_t;
-            t = XPLMGetDatai(gMpAltHoldStatDataRef);
-            *x = (t == 0) ? MP_BTN_ALT_OFF : ((t == 2) ? MP_BTN_ALT_CAPT : MP_BTN_ALT_ARMED);
-            gMp_ojq.post(new myjob(x));
-            // APR button
-            x = new uint32_t;
-            t = XPLMGetDatai(gMpApprchStatDataRef);
-            *x = (t == 0) ? MP_BTN_APR_OFF : ((t == 2) ? MP_BTN_APR_CAPT : MP_BTN_APR_ARMED);
-            gMp_ojq.post(new myjob(x));
-            // REV button
-            x = new uint32_t;
-            t = XPLMGetDatai(gMpBckCrsStatDataRef);
-            *x = (t == 0) ? MP_BTN_REV_OFF : ((t == 2) ? MP_BTN_REV_CAPT : MP_BTN_REV_ARMED);
-            gMp_ojq.post(new myjob(x));
-            // HDG button
-            x = new uint32_t;
-            t = XPLMGetDatai(gMpHdgStatDataRef);
-            *x = (t == 0) ? MP_BTN_HDG_OFF : ((t == 2) ? MP_BTN_HDG_CAPT : MP_BTN_HDG_ARMED);
-            gMp_ojq.post(new myjob(x));
-            // NAV button
-            x = new uint32_t;
-            t = XPLMGetDatai(gMpNavStatDataRef);
-            *x = (t == 0) ? MP_BTN_NAV_OFF : ((t == 2) ? MP_BTN_NAV_CAPT : MP_BTN_NAV_ARMED);
-            gMp_ojq.post(new myjob(x));
-            // IAS button
-            x = new uint32_t;
-            t = XPLMGetDatai(gMpSpdStatDataRef);
-            *x = (t == 0) ? MP_BTN_IAS_OFF : ((t == 2) ? MP_BTN_IAS_CAPT : MP_BTN_IAS_ARMED);
-            gMp_ojq.post(new myjob(x));
-            // VS button
-            x = new uint32_t;
-            t = XPLMGetDatai(gMpVviStatDataRef);
-            *x = (t == 0) ? MP_BTN_VS_OFF : ((t == 2) ? MP_BTN_VS_CAPT : MP_BTN_VS_ARMED);
-            gMp_ojq.post(new myjob(x));
+            mp_do_init();
             LPRINTF("Saitek ProPanels Plugin: XPluginReceiveMessage XPLM_MSG_PLANE_LOADED\n");
             break;
         case XPLM_MSG_AIRPORT_LOADED:
