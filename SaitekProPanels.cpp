@@ -1434,7 +1434,7 @@ XPluginReceiveMessage(XPLMPluginID inFrom, long inMsg, void* inParam) {
     if (inFrom == XPLM_PLUGIN_XPLANE) {
         switch (inMsg) {
         case XPLM_MSG_PLANE_LOADED:
-            if ((int)inParam != 0)) {
+            if ((int)inParam != 0) {
                 // not the user's plane
                 break;
             }
@@ -1546,7 +1546,7 @@ XPluginReceiveMessage(XPLMPluginID inFrom, long inMsg, void* inParam) {
 // XXX: what's different between an unloaded and crashed plane
 // as far as system state and procedure?
         case XPLM_MSG_PLANE_CRASHED:
-            if ((int)inParam != 0)) {
+            if ((int)inParam != 0) {
                 // not the user's plane
                 break;
             }
@@ -1556,7 +1556,7 @@ XPluginReceiveMessage(XPLMPluginID inFrom, long inMsg, void* inParam) {
             LPRINTF("Saitek ProPanels Plugin: XPluginReceiveMessage XPLM_MSG_PLANE_CRASHED\n");
             break;
         case XPLM_MSG_PLANE_UNLOADED:
-            if ((int)inParam != 0)) {
+            if ((int)inParam != 0) {
                 // not the user's plane
                 break;
             }
