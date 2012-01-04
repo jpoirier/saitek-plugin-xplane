@@ -71,6 +71,7 @@ sim/aircraft/specialcontrols/acf_ail1flaps
 
 USING_PTYPES
 
+// Multi panel
 enum {
     CMD_EAT_EVENT,
     CMD_PASS_EVENT,
@@ -88,6 +89,7 @@ enum {
     CMD_OTTO_ON,
     CMD_OTTO_OFF,
     CMD_OTTO_ARMED,
+    CMD_OTTO_AP_BTN,
     CMD_OTTO_HDG_BTN,
     CMD_OTTO_NAV_BTN,
     CMD_OTTO_IAS_BTN,
@@ -157,15 +159,15 @@ enum {
 // For X-Plane v9.x, and possibly v10, a higher count means
 // we interrupt X-Plane proper and a lower count increases
 // panel input/output latency.
-int gRp_MsgProc_Cnt = RP_MSGPROC_CNT;
-int gMp_MsgProc_Cnt = MP_MSGPROC_CNT;
-int gSp_MsgProc_Cnt = SP_MSGPROC_CNT;
+int32_t gRp_MsgProc_Cnt = RP_MSGPROC_CNT;
+int32_t gMp_MsgProc_Cnt = MP_MSGPROC_CNT;
+int32_t gSp_MsgProc_Cnt = SP_MSGPROC_CNT;
 
-int gAvPwrOn = false;
-int gBat1On = false;
-int gPlaneLoaded = false;
-int gPluginEnabled = false;
-unsigned int gFlCbCnt = 0;
+int32_t gAvPwrOn = false;
+int32_t gBat1On = false;
+int32_t gPlaneLoaded = false;
+int32_t gPluginEnabled = false;
+uint32_t gFlCbCnt = 0;
 
 // rp = Rp = RP = Radio Panel
 // mp = Mp = MP = Milti Panel
@@ -174,12 +176,10 @@ unsigned int gFlCbCnt = 0;
 // Flightloop Callback INterval
 static const float FL_CB_INTERVAL = -1.0;
 
-uint32_t gMpBtnEvtPending = 0;
-
 XPLMDataRef gAvPwrOnDataRef = NULL;
 XPLMDataRef gBatPwrOnDataRef = NULL;
 
-/* Command Refs */
+/* Multi Panel Command Refs */
 XPLMCommandRef gAvPwrOnCmdRef = NULL;
 XPLMCommandRef gAvPwrOffCmdRef = NULL;
 XPLMCommandRef gBatPwrOnCmdRef = NULL;
@@ -210,17 +210,18 @@ XPLMCommandRef gMpPtchTrmTkOffCmdRef = NULL;
 XPLMCommandRef gMpApOnCmdRef = NULL;
 XPLMCommandRef gMpApOffCmdRef = NULL;
 XPLMCommandRef gMpApArmedCmdRef = NULL;
+XPLMCommandRef gMpApToggleCmdRef = NULL;
 XPLMCommandRef gMpVrtclSpdDnCmdRef = NULL;
 XPLMCommandRef gMpVrtclSpdUpCmdRef = NULL;
 XPLMCommandRef gMpVrtclSpdCmdRef = NULL;
 
-/* Data Refs */
+/* Multi Panel Data Refs */
 XPLMDataRef gMpOttoOvrrde = NULL;
 XPLMDataRef gMpArspdDataRef = NULL;
 XPLMDataRef gMpAltDataRef = NULL;
 XPLMDataRef gMpAltHoldStatDataRef = NULL;
 XPLMDataRef gMpApprchStatDataRef = NULL;
-XPLMDataRef gMpApStateDataRef = NULL;
+XPLMDataRef gMpApOnDataRef = NULL;
 XPLMDataRef gMpBckCrsStatDataRef = NULL;
 XPLMDataRef gMpFlghtDirModeDataRef = NULL;
 XPLMDataRef gMpHdgMagDataRef = NULL;
@@ -230,6 +231,27 @@ XPLMDataRef gMpNavStatDataRef = NULL;
 XPLMDataRef gMpSpdStatDataRef = NULL;
 XPLMDataRef gMpVrtVelDataRef = NULL;
 XPLMDataRef gMpVviStatDataRef = NULL;
+
+/* Multi Panel reference counters */
+int32_t gMpPitchTrimUpPending = 0;
+int32_t gMpPitchTrimDnPending = 0;
+int32_t gMpFlapsUpPending = 0;
+int32_t gMpFlapsDnPending = 0;
+int32_t gMpBtn_Ap_TogglePending = 0;
+int32_t gMpBtn_Hdg_TogglePending = 0;
+int32_t gMpBtn_Nav_TogglePending = 0;
+int32_t gMpBtn_Ias_TogglePending = 0;
+int32_t gMpBtn_Alt_TogglePending = 0;
+int32_t gMpBtn_Vs_TogglePending = 0;
+int32_t gMpBtn_Apr_TogglePending = 0;
+int32_t gMpBtn_Rev_TogglePending = 0;
+int32_t gMpAutothrottle_offPending = 0;
+int32_t gMpAutothrottle_onPending = 0;
+int32_t gMpAlt_Pending = 0;
+int32_t gMpVs_Pending = 0;
+int32_t gMpIas_Pending = 0;
+int32_t gMpHdg_Pending = 0;
+int32_t gMpCrs_Pending = 0;
 
 /* SWITCH PANEL Command Refs */
 XPLMCommandRef gSpMagnetosOffCmdRef = NULL;
@@ -300,8 +322,6 @@ XPLMDataRef gSpLightsLandingOffDataRef = NULL;
 XPLMDataRef gSpLandingGearUpDataRef = NULL;
 XPLMDataRef gSpLandingGearDownDataRef = NULL;
 
-
-
 /*
 sim/systems/avionics_on                            Avionics on.
 sim/systems/avionics_off                           Avionics off.
@@ -345,8 +365,8 @@ sim/autopilot/altitude_up                          Autopilot altitude up.
 sim/autopilot/altitude_sync                        Autopilot altitude sync.
 */
 
-#define sAVIONICS_POWER_ON          "sim/cockpit2/switches/avionics_power_on"
-#define sBATTERY_ON                 "sim/cockpit/electrical/battery_on"
+// Multi Panel command and data refs
+// command refs
 #define sALTITUDE_DOWN              "sim/autopilot/altitude_down"
 #define sALTITUDE_UP                "sim/autopilot/altitude_up"
 #define sVERTICAL_SPEED_DOWN        "sim/autopilot/vertical_speed_down"
@@ -358,7 +378,8 @@ sim/autopilot/altitude_sync                        Autopilot altitude sync.
 #define sOBS_HSI_DOWN               "sim/radios/obs_HSI_down"
 #define sOBS_HSI_UP                 "sim/radios/obs_HSI_up"
 #define sFLIGHT_DIR_ON_ONLY         "sim/autopilot/flight_dir_on_only"
-#define sSERVOS_AND_FLIGHT_DIR_ON   "sim/autopilot/servos_and_flight_dir_on "
+#define sFDIR_SERVOS_TOGGLE         "sim/autopilot/fdir_servos_toggle"
+#define sSERVOS_AND_FLIGHT_DIR_ON   "sim/autopilot/servos_and_flight_dir_on"
 #define sSERVOS_AND_FLIGHT_DIR_OFF  "sim/autopilot/servos_and_flight_dir_off"
 #define sHEADING                    "sim/autopilot/heading"
 #define sNAV                        "sim/autopilot/NAV"
@@ -376,6 +397,11 @@ sim/autopilot/altitude_sync                        Autopilot altitude sync.
 #define sPITCH_TRIM_DOWN            "sim/flight_controls/pitch_trim_down"
 #define sPITCH_TRIM_UP              "sim/flight_controls/pitch_trim_up"
 #define sPITCH_TRIM_TAKEOFF         "sim/flight_controls/pitch_trim_takeoff"
+
+// data refs
+#define sAVIONICS_POWER_ON          "sim/cockpit2/switches/avionics_power_on"
+#define sBATTERY_ON                 "sim/cockpit/electrical/battery_on"
+
 #define sFLIGHT_DIRECTOR_MODE       "sim/cockpit2/autopilot/flight_director_mode"
 #define sALTITUDE_DIAL_FT           "sim/cockpit2/autopilot/altitude_dial_ft"
 #define sALTITUDE_HOLD_FT           "sim/cockpit2/autopilot/altitude_hold_ft"
@@ -385,16 +411,18 @@ sim/autopilot/altitude_sync                        Autopilot altitude sync.
 #define sHSI_OBS_DEG_MAG_PILOT      "sim/cockpit2/radios/actuators/hsi_obs_deg_mag_pilot"
 #define sAIRSPEED                   "sim/cockpit/autopilot/airspeed"
 #define sVERTICAL_VELOCITY          "sim/cockpit/autopilot/vertical_velocity"
+
 #define sALTITUDE                   "sim/cockpit/autopilot/altitude"
 #define sHEADING_MAG                "sim/cockpit/autopilot/heading_mag"
 #define sALTITUDE_HOLD_STATUS       "sim/cockpit2/autopilot/altitude_hold_status"
 #define sAPPROACH_STATUS            "sim/cockpit2/autopilot/approach_status"
-#define sAUTOPILOT_STATE            "sim/cockpit/autopilot/autopilot_state"
+#define sAUTOPILOT_ON               "sim/cockpit2/autopilot/autopilot_on"
 #define sBACKCOURSE_STATUS          "sim/cockpit2/autopilot/backcourse_status"
 #define sHEADING_STATUS             "sim/cockpit2/autopilot/heading_status"
 #define sNAV_STATUS                 "sim/cockpit2/autopilot/nav_status"
 #define sSPEED_STATUS               "sim/cockpit2/autopilot/speed_status"
 #define sVVI_STATUS                 "sim/cockpit2/autopilot/vvi_status"
+
 /* SWITCH PANEL */
 #define sMAGNETOS_OFF               "sim/magnetos/magnetos_off"
 #define sMAGNETOS_RIGHT             "sim/magnetos/magnetos_right_1"
@@ -534,17 +562,40 @@ XPluginStart(char* outName, char* outSig, char* outDesc) {
 int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
                              XPLMCommandPhase  inPhase,
                              void*             inRefcon) {
-    uint32_t* m;
-    uint32_t x;
-    float f;
+    int32_t t = 0;
+    uint32_t x = 0;
+    float f = 0.0;
+    uint32_t* m = NULL;
     int status = CMD_PASS_EVENT;
+
+//----
+// gMpBtn_Ap_TogglePending
+//----
 
 // TODO: check/set item state for some events!?
     switch (reinterpret_cast<uint32_t>(inRefcon)) {
+    case CMD_FLTCTL_FLAPS_UP:
+        //gMpPitchTrimUpPending
+        status = CMD_EAT_EVENT;
+        break;
+    case CMD_FLTCTL_FLAPS_DOWN:
+        //gMpPitchTrimDnPending
+        status = CMD_EAT_EVENT;
+        break;
+    case CMD_FLTCTL_PITCHTRIM_UP:
+        //gMpFlapsUpPending
+        status = CMD_EAT_EVENT;
+        break;
+    case CMD_FLTCTL_PITCHTRIM_DOWN:
+        //gMpFlapsDnPending
+        status = CMD_EAT_EVENT;
+        break;
     case CMD_OTTO_AUTOTHROTTLE_ON:
+        //gMpAutothrottle_onPending
         status = CMD_EAT_EVENT;
         break;
     case CMD_OTTO_AUTOTHROTTLE_OFF:
+        //gMpAutothrottle_offPending
         status = CMD_EAT_EVENT;
         break;
     case CMD_SYS_AVIONICS_ON:
@@ -573,101 +624,161 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
         break;
     case CMD_OTTO_ON:
         m = new uint32_t;
-        *m = BTN_AP_ON;
+        *m = MP_BTN_AP_ON;
         gMp_ojq.post(new myjob(m));
         break;
     case CMD_OTTO_OFF:
         m = new uint32_t;
-        *m = BTN_AP_OFF;
+        *m = MP_BTN_AP_OFF;
         gMp_ojq.post(new myjob(m));
         break;
     case CMD_OTTO_ARMED:
         m = new uint32_t;
-        *m = BTN_AP_ARMED;
+        *m = MP_BTN_AP_ARMED;
         gMp_ojq.post(new myjob(m));
         break;
     case CMD_OTTO_ALT_UP:
     case CMD_OTTO_ALT_DN:
-        m = new uint32_t[MPM_CNT];
-        m[0] = MPM;
-        m[1] = ALT_VAL;
-        m[2] = (uint32_t)XPLMGetDataf(gMpAltDataRef);
-        gMp_ojq.post(new myjob(m));
+        pexchange((int*)&t, gMpAlt_Pending);
+        if (t > 0) {
+            pdecrement(&gMpAlt_Pending);
+        } else {
+            m = new uint32_t[MP_MPM_CNT];
+            m[0] = MP_MPM;
+            m[1] = MP_ALT_VAL;
+            m[2] = (uint32_t)XPLMGetDataf(gMpAltDataRef);
+            gMp_ojq.post(new myjob(m));
+        }
         break;
     case CMD_OTTO_VS_UP:
     case CMD_OTTO_VS_DN:
-        m = new uint32_t[MPM_CNT];
-        f = XPLMGetDataf(gMpVrtVelDataRef);
-        m[1] = (f < 0) ? VS_VAL_NEG : VS_VAL_POS;
-        m[0] = MPM;
-        m[2] = (uint32_t) fabs(f);
-        gMp_ojq.post(new myjob(m));
+        pexchange((int*)&t, gMpVs_Pending);
+        if (t > 0) {
+            pdecrement(&gMpIas_Pending);
+        } else {
+            m = new uint32_t[MP_MPM_CNT];
+            f = XPLMGetDataf(gMpVrtVelDataRef);
+            m[1] = (f < 0) ? MP_VS_VAL_NEG : MP_VS_VAL_POS;
+            m[0] = MP_MPM;
+            m[2] = (uint32_t) fabs(f);
+            gMp_ojq.post(new myjob(m));
+        }
         break;
     case CMD_OTTO_IAS_UP:
     case CMD_OTTO_IAS_DN:
-        m = new uint32_t[MPM_CNT];
-        m[0] = MPM;
-        m[1] = IAS_VAL;
-        m[2] = (uint32_t)XPLMGetDataf(gMpArspdDataRef);
-        gMp_ojq.post(new myjob(m));
+        pexchange((int*)&t, gMpIas_Pending);
+        if (t > 0) {
+            pdecrement(&gMpIas_Pending);
+        } else {
+            m = new uint32_t[MP_MPM_CNT];
+            m[0] = MP_MPM;
+            m[1] = MP_IAS_VAL;
+            m[2] = (uint32_t)XPLMGetDataf(gMpArspdDataRef);
+            gMp_ojq.post(new myjob(m));
+        }
         break;
     case CMD_OTTO_HDG_UP:
     case CMD_OTTO_HDG_DN:
-        m = new uint32_t[MPM_CNT];
-        m[0] = MPM;
-        m[1] = HDG_VAL;
-        m[2] = (uint32_t)XPLMGetDataf(gMpHdgMagDataRef);
-        gMp_ojq.post(new myjob(m));
+        pexchange((int*)&t, gMpHdg_Pending);
+        if (t > 0) {
+            pdecrement(&gMpHdg_Pending);
+        } else {
+            m = new uint32_t[MP_MPM_CNT];
+            m[0] = MP_MPM;
+            m[1] = MP_HDG_VAL;
+            m[2] = (uint32_t)XPLMGetDataf(gMpHdgMagDataRef);
+            gMp_ojq.post(new myjob(m));
+        }
         break;
     case CMD_OTTO_CRS_UP:
     case CMD_OTTO_CRS_DN:
-        m = new uint32_t[MPM_CNT];
-        m[0] = MPM;
-        m[1] = CRS_VAL;
-        m[2] = (uint32_t)XPLMGetDataf(gMpHsiObsDegMagPltDataRef);
-        gMp_ojq.post(new myjob(m));
+        pexchange((int*)&t, gMpCrs_Pending);
+        if (t > 0) {
+            pdecrement(&gMpCrs_Pending);
+        } else {
+            m = new uint32_t[MP_MPM_CNT];
+            m[0] = MP_MPM;
+            m[1] = MP_CRS_VAL;
+            m[2] = (uint32_t)XPLMGetDataf(gMpHsiObsDegMagPltDataRef);
+            gMp_ojq.post(new myjob(m));
+        }
         break;
    case CMD_OTTO_HDG_BTN:
-        m = new uint32_t;
-        x = (uint32_t)XPLMGetDatai(gMpHdgStatDataRef);
-        *m = (x == 0) ? BTN_HDG_OFF : ((x == 2) ? BTN_HDG_CAPT : BTN_HDG_ARMED);
-        gMp_ojq.post(new myjob(m));
+        pexchange((int*)&t, gMpBtn_Hdg_TogglePending);
+        if (t > 0) {
+            pdecrement(&gMpBtn_Hdg_TogglePending);
+        } else {
+            m = new uint32_t;
+            x = (uint32_t)XPLMGetDatai(gMpHdgStatDataRef);
+            *m = (x == 0) ? MP_BTN_HDG_OFF : ((x == 2) ? MP_BTN_HDG_CAPT : MP_BTN_HDG_ARMED);
+            gMp_ojq.post(new myjob(m));
+        }
         break;
     case CMD_OTTO_NAV_BTN:
-        m = new uint32_t;
-        x = (uint32_t)XPLMGetDatai(gMpNavStatDataRef);
-        *m = (x == 0) ? BTN_NAV_OFF : ((x == 2) ? BTN_NAV_CAPT : BTN_NAV_ARMED);
-        gMp_ojq.post(new myjob(m));
+        pexchange((int*)&t, gMpBtn_Nav_TogglePending);
+        if (t > 0) {
+            pdecrement(&gMpBtn_Nav_TogglePending);
+        } else {
+            m = new uint32_t;
+            x = (uint32_t)XPLMGetDatai(gMpNavStatDataRef);
+            *m = (x == 0) ? MP_BTN_NAV_OFF : ((x == 2) ? MP_BTN_NAV_CAPT : MP_BTN_NAV_ARMED);
+            gMp_ojq.post(new myjob(m));
+        }
         break;
     case CMD_OTTO_IAS_BTN:
-        m = new uint32_t;
-        x = (uint32_t)XPLMGetDatai(gMpSpdStatDataRef);
-        *m = (x == 0) ? BTN_IAS_OFF : ((x == 2) ? BTN_IAS_CAPT : BTN_IAS_ARMED);
-        gMp_ojq.post(new myjob(m));
+        pexchange((int*)&t, gMpBtn_Ias_TogglePending);
+        if (t > 0) {
+            pdecrement(&gMpBtn_Ias_TogglePending);
+        } else {
+            m = new uint32_t;
+            x = (uint32_t)XPLMGetDatai(gMpSpdStatDataRef);
+            *m = (x == 0) ? MP_BTN_IAS_OFF : ((x == 2) ? MP_BTN_IAS_CAPT : MP_BTN_IAS_ARMED);
+            gMp_ojq.post(new myjob(m));
+        }
         break;
     case CMD_OTTO_ALT_BTN:
-        m = new uint32_t;
-        x = (uint32_t)XPLMGetDatai(gMpAltHoldStatDataRef);
-        *m = (x == 0) ? BTN_ALT_OFF : ((x == 2) ? BTN_ALT_CAPT : BTN_ALT_ARMED);
-        gMp_ojq.post(new myjob(m));
+        pexchange((int*)&t, gMpBtn_Alt_TogglePending);
+        if (t > 0) {
+            pdecrement(&gMpBtn_Alt_TogglePending);
+        } else {
+            m = new uint32_t;
+            x = (uint32_t)XPLMGetDatai(gMpAltHoldStatDataRef);
+            *m = (x == 0) ? MP_BTN_ALT_OFF : ((x == 2) ? MP_BTN_ALT_CAPT : MP_BTN_ALT_ARMED);
+            gMp_ojq.post(new myjob(m));
+        }
         break;
     case CMD_OTTO_VS_BTN:
-        m = new uint32_t;
-        x = (uint32_t)XPLMGetDatai(gMpVviStatDataRef);
-        *m = (x == 0) ? BTN_VS_OFF : ((x == 2) ? BTN_VS_CAPT : BTN_VS_ARMED);
-        gMp_ojq.post(new myjob(m));
+        pexchange((int*)&t, gMpBtn_Vs_TogglePending);
+        if (t > 0) {
+            pdecrement(&gMpBtn_Vs_TogglePending);
+        } else {
+            m = new uint32_t;
+            x = (uint32_t)XPLMGetDatai(gMpVviStatDataRef);
+            *m = (x == 0) ? MP_BTN_VS_OFF : ((x == 2) ? MP_BTN_VS_CAPT : MP_BTN_VS_ARMED);
+            gMp_ojq.post(new myjob(m));
+        }
         break;
     case CMD_OTTO_APR_BTN:
-        m = new uint32_t;
-        x = (uint32_t)XPLMGetDatai(gMpApprchStatDataRef);
-        *m = (x == 0) ? BTN_APR_OFF : ((x == 2) ? BTN_APR_CAPT : BTN_APR_ARMED);
-        gMp_ojq.post(new myjob(m));
+        pexchange((int*)&t, gMpBtn_Apr_TogglePending);
+        if (t > 0) {
+            pdecrement(&gMpBtn_Apr_TogglePending);
+        } else {
+            m = new uint32_t;
+            x = (uint32_t)XPLMGetDatai(gMpApprchStatDataRef);
+            *m = (x == 0) ? MP_BTN_APR_OFF : ((x == 2) ? MP_BTN_APR_CAPT : MP_BTN_APR_ARMED);
+            gMp_ojq.post(new myjob(m));
+        }
         break;
     case CMD_OTTO_REV_BTN:
-        m = new uint32_t;
-        x = (uint32_t)XPLMGetDatai(gMpBckCrsStatDataRef);
-        *m = (x == 0) ? BTN_REV_OFF : ((x == 2) ? BTN_REV_CAPT : BTN_REV_ARMED);
-        gMp_ojq.post(new myjob(m));
+        pexchange((int*)&t, gMpBtn_Rev_TogglePending);
+        if (t > 0) {
+            pdecrement(&gMpBtn_Rev_TogglePending);
+        } else {
+            m = new uint32_t;
+            x = (uint32_t)XPLMGetDatai(gMpBckCrsStatDataRef);
+            *m = (x == 0) ? MP_BTN_REV_OFF : ((x == 2) ? MP_BTN_REV_CAPT : MP_BTN_REV_ARMED);
+            gMp_ojq.post(new myjob(m));
+        }
         break;
     default:
         break;
@@ -901,9 +1012,11 @@ float RadioPanelFlightLoopCallback(float   inElapsedSinceLastCall,
     while (msg_cnt--) {
         message* msg = gRp_ijq.getmessage(MSG_NOWAIT);
 
-        if (msg) {
-        } // if (msg)
+        if (!msg) {
+            break;
+        } else {
 
+        } // if (msg)
         delete msg;
     } // while
 
@@ -935,100 +1048,119 @@ float MultiPanelFlightLoopCallback(float   inElapsedSinceLastCall,
     while (msg_cnt--) {
         message* msg = gMp_ijq.getmessage(MSG_NOWAIT);
 
-        if (msg) {
-//sprintf(tmp, "Saitek ProPanels Plugin: msg received  0x%0.8X \n", *(uint32_t*)((myjob*) msg)->buf);
-//LPRINTF(tmp);
+        if (!msg) {
+            break;
+        } else {
+            //sprintf(tmp, "Saitek ProPanels Plugin: msg received  0x%0.8X \n", *(uint32_t*)((myjob*) msg)->buf);
+            //LPRINTF(tmp);
             if (gAvPwrOn && gBat1On) {
                 x = *((myjob*)msg)->buf;
 
+                // Use a reference counter for incoming messages
+                // that shouldn't go back out.
                 switch (x) {
-                case PITCHTRIM_UP:
+                case MP_PITCHTRIM_UP:
+                    pincrement(&gMpPitchTrimUpPending);
                     XPLMCommandOnce(gMpPtchTrmUpCmdRef);
                     break;
-                case PITCHTRIM_DN:
+                case MP_PITCHTRIM_DN:
+                    pincrement(&gMpPitchTrimDnPending);
                     XPLMCommandOnce(gMpPtchTrmDnCmdRef);
                     break;
-                case FLAPS_UP:
+                case MP_FLAPS_UP:
+                    pincrement(&gMpFlapsUpPending);
                     XPLMCommandOnce(gMpFlpsUpCmdRef);
                     break;
-                case FLAPS_DN:
+                case MP_FLAPS_DN:
+                    pincrement(&gMpFlapsDnPending);
                     XPLMCommandOnce(gMpFlpsDnCmdRef);
                     break;
-/*
-    gMpApArmedCmdRef         = XPLMFindCommand("sim/autopilot/flight_dir_on_only");
-    gMpApOnCmdRef            = XPLMFindCommand("sim/autopilot/servos_and_flight_dir_on ");
-    gMpApOffCmdRef           = XPLMFindCommand("sim/autopilot/servos_and_flight_dir_off");
-    gMpAltHoldCmdRef         = XPLMFindCommand("sim/autopilot/altitude_hold");
- */
-                case BTN_AP_TOGGLE:
-//                x = XPLMGetDatai(gMpFlghtDirModeDataRef)
-//                XPLMSetDatai()
-//                XPLMCommandOnce();
+                case MP_BTN_AP_TOGGLE:
+//                    pincrement(&gMpBtn_Ap_TogglePending);
+                    XPLMCommandOnce(gMpApToggleCmdRef);
                     break;
-                case BTN_HDG_TOGGLE:
+                case MP_BTN_HDG_TOGGLE:
+//                    pincrement(&gMpBtn_Hdg_TogglePending);
                     XPLMCommandOnce(gMpHdgCmdRef);
                     break;
-                case BTN_NAV_TOGGLE:
+                case MP_BTN_NAV_TOGGLE:
+//                    pincrement(&gMpBtn_Nav_TogglePending);
                     XPLMCommandOnce(gMpNavCmdRef);
                     break;
-                case BTN_IAS_TOGGLE:
+                case MP_BTN_IAS_TOGGLE:
+//                    pincrement(&gMpBtn_Ias_TogglePending);
                     XPLMCommandOnce(gMpLvlChngCmdRef);
                     break;
-                case BTN_ALT_TOGGLE:
-//                XPLMCommandOnce();
+                case MP_BTN_ALT_TOGGLE:
+//                    pincrement(&gMpBtn_Alt_TogglePending);
+                    XPLMCommandOnce(&gMpAltHoldCmdRef);
                     break;
-                case BTN_VS_TOGGLE:
+                case MP_BTN_VS_TOGGLE:
+//                    pincrement(&gMpBtn_Vs_TogglePending);
                     XPLMCommandOnce(gMpVrtclSpdCmdRef);
                     break;
-                case BTN_APR_TOGGLE:
+                case MP_BTN_APR_TOGGLE:
+//                    pincrement(&gMpBtn_Apr_TogglePending);
                     XPLMCommandOnce(gMpAppCmdRef);
                     break;
-                case BTN_REV_TOGGLE:
+                case MP_BTN_REV_TOGGLE:
+//                    pincrement(&gMpBtn_Rev_TogglePending);
                     XPLMCommandOnce(gMpBkCrsCmdRef);
                     break;
-                case AUTOTHROTTLE_OFF:
+                case MP_AUTOTHROTTLE_OFF:
+                    pincrement(&gMpAutothrottle_offPending);
                     XPLMCommandOnce(gMpAtThrrtlOffCmdRef);
                     break;
-                case AUTOTHROTTLE_ON:
+                case MP_AUTOTHROTTLE_ON:
+                    pincrement(&gMpAutothrottle_onPending);
                     XPLMCommandOnce(gMpAtThrrtlOnCmdRef);
                     break;
-                case ALT_UP:
+                case MP_ALT_UP:
+//                    pincrement(&gMpAlt_Pending);
                     XPLMCommandOnce(gMpAltUpCmdRef);
                     break;
-                case ALT_DN:
+                case MP_ALT_DN:
+//                    pincrement(&gMpAlt_Pending);
                     XPLMCommandOnce(gMpAltDnCmdRef);
                     break;
-                case VS_UP:
+                case MP_VS_UP:
+//                    pincrement(&gMpVs_Pending);
                     XPLMCommandOnce(gMpVrtclSpdUpCmdRef);
                     break;
-                case VS_DN:
+                case MP_VS_DN:
+//                    pincrement(&gMpVs_Pending);
                     XPLMCommandOnce(gMpVrtclSpdDnCmdRef);
                     break;
-                case IAS_UP:
+                case MP_IAS_UP:
+//                    pincrement(&gMpIas_Pending);
                     XPLMCommandOnce(gMpAsUpCmdRef);
                     break;
-                case IAS_DN:
+                case MP_IAS_DN:
+//                    pincrement(&gMpIas_Pending);
                     XPLMCommandOnce(gMpAsDnCmdRef);
                     break;
-                case HDG_UP:
+                case MP_HDG_UP:
+//                    pincrement(&gMpHdg_Pending);
                     XPLMCommandOnce(gMpHdgUpCmdRef);
                     break;
-                case HDG_DN:
+                case MP_HDG_DN:
+//                    pincrement(&gMpHdg_Pending);
                     XPLMCommandOnce(gMpHdgDnCmdRef);
                     break;
-                case CRS_UP:
+                case MP_CRS_UP:
+//                    pincrement(&gMpCrs_Pending);
                     XPLMCommandOnce(gMpObsHsiUpCmdRef);
                     break;
-                case CRS_DN:
+                case MP_CRS_DN:
+//                    pincrement(&gMpCrs_Pending);
                     XPLMCommandOnce(gMpObsHsiDnCmdRef);
                     break;
                 default:
-// DPRINTF("Saitek ProPanels Plugin: UNKNOWN MSG -------\n");
+                    // DPRINTF("Saitek ProPanels Plugin: UNKNOWN MSG -------\n");
                     // TODO: log error
                     break;
-                }
+                } // switch (x)
             } // if (gAvPwrOn && gBat1On)
-
             delete msg;
         } // if (msg)
     } // while
@@ -1066,7 +1198,9 @@ float SwitchPanelFlightLoopCallback(float   inElapsedSinceLastCall,
     while (msg_cnt--) {
         message* msg = gSp_ijq.getmessage(MSG_NOWAIT);
 
-        if (msg) {
+        if (!msg) {
+            break;
+        } else {
             x = *((myjob*)msg)->buf;
 
             switch (x) {
@@ -1172,8 +1306,6 @@ float SwitchPanelFlightLoopCallback(float   inElapsedSinceLastCall,
            default:
                 break;
             }
-
-
         } // if (msg)
 
         delete msg;
@@ -1295,51 +1427,149 @@ XPluginEnable(void) {
 PLUGIN_API void
 XPluginReceiveMessage(XPLMPluginID inFrom, long inMsg, void* inParam) {
 //    LPRINTF("Saitek ProPanels Plugin: XPluginReceiveMessage\n");
-
-// XXX: sending quueue messages here probably subverts the Command Handlers.
-// We want functionality that requires no, or very little, synchronization.
+    float f;
+    int32_t t;
+    uint32_t* m;
+    uint32_t* x;
     if (inFrom == XPLM_PLUGIN_XPLANE) {
         switch (inMsg) {
         case XPLM_MSG_PLANE_LOADED:
             pexchange((int*)&gPlaneLoaded, true); // always first
+            x = new uint32_t;
             if ((bool)XPLMGetDatai(gAvPwrOnDataRef)) {
                 pexchange((int*)&gAvPwrOn, true);
-                uint32_t* x = new uint32_t;
-                *x = gAvPwrOn;
+                *x = AVIONICS_ON;
                 gMp_ojq.post(new myjob(x));
-// TODO: send message to switch panel queue?
+            } else {
+                pexchange((int*)&gAvPwrOn, false);
+                *x = AVIONICS_OFF;
+                gMp_ojq.post(new myjob(x));
             }
+            x = new uint32_t;
             if ((bool)XPLMGetDatai(gBatPwrOnDataRef)) {
                 pexchange((int*)&gBat1On, true);
-                uint32_t* x = new uint32_t;
-                *x = gBat1On;
+                *x = BAT1_ON;
                 gMp_ojq.post(new myjob(x));
-// TODO: send message to switch panel queue?
+            } else {
+                pexchange((int*)&gBat1On, false);
+                *x = BAT1_OFF;
+                gMp_ojq.post(new myjob(x));
             }
+            // ALT val init
+            m = new uint32_t[MP_MPM_CNT];
+            m[0] = MP_MPM;
+            m[1] = MP_ALT_VAL;
+            m[2] = (uint32_t)XPLMGetDataf(gMpAltDataRef);
+            gMp_ojq.post(new myjob(m));
+            // VS val init
+            m = new uint32_t[MP_MPM_CNT];
+            f = XPLMGetDataf(gMpVrtVelDataRef);
+            m[1] = (f < 0) ? MP_VS_VAL_NEG : MP_VS_VAL_POS;
+            m[0] = MP_MPM;
+            m[2] = (uint32_t) fabs(f);
+            gMp_ojq.post(new myjob(m));
+            // IAS val init
+            m = new uint32_t[MP_MPM_CNT];
+            m[0] = MP_MPM;
+            m[1] = MP_IAS_VAL;
+            m[2] = (uint32_t)XPLMGetDataf(gMpArspdDataRef);
+            gMp_ojq.post(new myjob(m));
+            // HDG val init
+            m = new uint32_t[MP_MPM_CNT];
+            m[0] = MP_MPM;
+            m[1] = MP_HDG_VAL;
+            m[2] = (uint32_t)XPLMGetDataf(gMpHdgMagDataRef);
+            gMp_ojq.post(new myjob(m));
+            // CRS val init
+            x = new uint32_t;
+            m[0] = MP_MPM;
+            m[1] = MP_CRS_VAL;
+            m[2] = (uint32_t)XPLMGetDataf(gMpHsiObsDegMagPltDataRef);
+            gMp_ojq.post(new myjob(m));
+            // AP button
+            x = new uint32_t;
+            t = XPLMGetDatai(gMpFlghtDirModeDataRef);
+            *x = (t == 0) ? MP_BTN_AP_OFF : ((t == 2) ? MP_BTN_AP_ON : MP_BTN_AP_ARMED);
+//            t = XPLMGetDatai(gMpApOnDataRef);
+//            *x = (t == 0) ? MP_BTN_AP_OFF : MP_BTN_AP_ON;
+            gMp_ojq.post(new myjob(x));
+            // HDG button
+            x = new uint32_t;
+            t = XPLMGetDatai(gMpHdgStatDataRef);
+            *x = (t == 0) ? MP_BTN_HDG_OFF : ((t == 2) ? MP_BTN_HDG_CAPT : MP_BTN_HDG_ARMED);
+            gMp_ojq.post(new myjob(x));
+            // NAV button
+            x = new uint32_t;
+            t = XPLMGetDatai(gMpNavStatDataRef);
+            *x = (t == 0) ? MP_BTN_NAV_OFF : ((t == 2) ? MP_BTN_NAV_CAPT : MP_BTN_NAV_ARMED);
+            gMp_ojq.post(new myjob(x));
+            // REV button
+            x = new uint32_t;
+            t = XPLMGetDatai(gMpBckCrsStatDataRef);
+            *x = (t == 0) ? MP_BTN_REV_OFF : ((t == 2) ? MP_BTN_REV_CAPT : MP_BTN_REV_ARMED);
+            gMp_ojq.post(new myjob(x));
+            // VS button
+            x = new uint32_t;
+            t = XPLMGetDatai(gMpVviStatDataRef);
+            *x = (t == 0) ? MP_BTN_VS_OFF : ((t == 2) ? MP_BTN_VS_CAPT : MP_BTN_VS_ARMED);
+            gMp_ojq.post(new myjob(x));
+            // IAS button
+            x = new uint32_t;
+            t = XPLMGetDatai(gMpSpdStatDataRef);
+            *x = (t == 0) ? MP_BTN_IAS_OFF : ((t == 2) ? MP_BTN_IAS_CAPT : MP_BTN_IAS_ARMED);
+            gMp_ojq.post(new myjob(x));
+            // ALT button
+            x = new uint32_t;
+            t = XPLMGetDatai(gMpAltHoldStatDataRef);
+            *x = (t == 0) ? MP_BTN_ALT_OFF : ((t == 2) ? MP_BTN_ALT_CAPT : MP_BTN_ALT_ARMED);
+            gMp_ojq.post(new myjob(x));
+            // APR button
+            x = new uint32_t;
+            t = XPLMGetDatai(gMpApprchStatDataRef);
+            *x = (t == 0) ? MP_BTN_APR_OFF : ((t == 2) ? MP_BTN_APR_CAPT : MP_BTN_APR_ARMED);
+            gMp_ojq.post(new myjob(x));
+            LPRINTF("Saitek ProPanels Plugin: XPluginReceiveMessage XPLM_MSG_PLANE_LOADED\n");
             break;
         case XPLM_MSG_AIRPORT_LOADED:
+            LPRINTF("Saitek ProPanels Plugin: XPluginReceiveMessage XPLM_MSG_AIRPORT_LOADED\n");
             break;
         case XPLM_MSG_SCENERY_LOADED:
+            LPRINTF("Saitek ProPanels Plugin: XPluginReceiveMessage XPLM_MSG_SCENERY_LOADED\n");
             break;
         case XPLM_MSG_AIRPLANE_COUNT_CHANGED:
+            LPRINTF("Saitek ProPanels Plugin: XPluginReceiveMessage XPLM_MSG_AIRPLANE_COUNT_CHANGED\n");
             break;
+// XXX: what's different between an unloaded and crashed plane
+// as far as system state and procedure?
         case XPLM_MSG_PLANE_CRASHED:
+            x = new uint32_t;
+            *x = MP_PLANE_CRASH;
+            gMp_ojq.post(new myjob(x));
+            LPRINTF("Saitek ProPanels Plugin: XPluginReceiveMessage XPLM_MSG_PLANE_CRASHED\n");
+            break;
         case XPLM_MSG_PLANE_UNLOADED:
-            // we may need something a little more heavy handed
-            // here to purge the queues
+            x = new uint32_t;
             if ((bool)XPLMGetDatai(gAvPwrOnDataRef)) {
                 pexchange((int*)&gAvPwrOn, false);
-                uint32_t* x = new uint32_t;
-                *x = gAvPwrOn;
+                *x = AVIONICS_OFF;
+                gMp_ojq.post(new myjob(x));
+            } else {
+                pexchange((int*)&gAvPwrOn, true);
+                *x = AVIONICS_ON;
                 gMp_ojq.post(new myjob(x));
             }
+            x = new uint32_t;
             if ((bool)XPLMGetDatai(gBatPwrOnDataRef)) {
                 pexchange((int*)&gBat1On, false);
-                uint32_t* x = new uint32_t;
-                *x = gBat1On;
+                *x = BAT1_OFF;
+                gMp_ojq.post(new myjob(x));
+            } else {
+                pexchange((int*)&gBat1On, true);
+                *x = BAT1_ON;
                 gMp_ojq.post(new myjob(x));
             }
             pexchange((int*)&gPlaneLoaded, false); // always last
+            LPRINTF("Saitek ProPanels Plugin: XPluginReceiveMessage XPLM_MSG_PLANE_UNLOADED\n");
             break;
         default:
             // unknown

@@ -87,39 +87,44 @@
 typedef void (*pHidInit) ();
 typedef unsigned char* (*pProcOutData) (unsigned int);
 
-#define READ_KNOB_MODE_MASK    (0x0000001F)
-#define READ_BTNS_MASK         (0x00007F80)
-#define READ_FLAPS_MASK        (0x00030000)
-#define READ_TRIM_MASK         (0x000C0000)
-#define READ_TUNING_MASK       (0x00000060)
-#define READ_THROTTLE_MASK     (0x00008000)
 
-#define READ_KNOB_ALT          (0x00000001)
-#define READ_KNOB_VS           (0x00000002)
-#define READ_KNOB_IAS          (0x00000004)
-#define READ_KNOB_HDG          (0x00000008)
-#define READ_KNOB_CRS          (0x00000010)
+#define MP_APBTN_BITPOS     (0)
+#define MP_HDGBTN_BITPOS    (1)
+#define MP_NAVBTN_BITPOS    (2)
+#define MP_IASBTN_BITPOS    (3)
+#define MP_ALTBTN_BITPOS    (4)
+#define MP_VSBTN_BITPOS     (5)
+#define MP_APRBTN_BITPOS    (6)
+#define MP_REVBTN_BITPOS    (7)
 
-#define READ_TUNING_RIGHT      (0x00000020)
-#define READ_TUNING_LEFT       (0x00000040)
-#define READ_AP_BTN            (0x00000080)
-#define READ_HDG_BTN           (0x00000100)
-#define READ_NAV_BTN           (0x00000200)
-#define READ_IAS_BTN           (0x00000400)
-#define READ_ALT_BTN           (0x00000800)
-#define READ_VS_BTN            (0x00001000)
-#define READ_APR_BTN           (0x00002000)
-#define READ_REV_BTN           (0x00004000)
-
-#define READ_THROTTLE_ON       (0x00008000)
-#define READ_THROTTLE_OFF      (0x00000000)
-
-#define READ_FLAPS_UP          (0x00010000)
-#define READ_FLAPS_DN          (0x00020000)
-
-#define READ_TRIM_DOWN         (0x00040000)
-#define READ_TRIM_UP           (0x00080000)
-#define READ_NOMSG             (0xFFFFFFFF)
+#define MP_READ_KNOB_MODE_MASK      (0x0000001F)
+#define MP_READ_BTNS_MASK           (0x00007F80)
+#define MP_READ_FLAPS_MASK          (0x00030000)
+#define MP_READ_TRIM_MASK           (0x000C0000)
+#define MP_READ_TUNING_MASK         (0x00000060)
+#define MP_READ_THROTTLE_MASK       (0x00008000)
+#define MP_READ_KNOB_ALT            (0x00000001)
+#define MP_READ_KNOB_VS             (0x00000002)
+#define MP_READ_KNOB_IAS            (0x00000004)
+#define MP_READ_KNOB_HDG            (0x00000008)
+#define MP_READ_KNOB_CRS            (0x00000010)
+#define MP_READ_TUNING_RIGHT        (0x00000020)
+#define MP_READ_TUNING_LEFT         (0x00000040)
+#define MP_READ_AP_BTN              (0x00000080)
+#define MP_READ_HDG_BTN             (0x00000100)
+#define MP_READ_NAV_BTN             (0x00000200)
+#define MP_READ_IAS_BTN             (0x00000400)
+#define MP_READ_ALT_BTN             (0x00000800)
+#define MP_READ_VS_BTN              (0x00001000)
+#define MP_READ_APR_BTN             (0x00002000)
+#define MP_READ_REV_BTN             (0x00004000)
+#define MP_READ_THROTTLE_ON         (0x00008000)
+#define MP_READ_THROTTLE_OFF        (0x00000000)
+#define MP_READ_FLAPS_UP            (0x00010000)
+#define MP_READ_FLAPS_DN            (0x00020000)
+#define MP_READ_TRIM_DOWN           (0x00040000)
+#define MP_READ_TRIM_UP             (0x00080000)
+#define MP_READ_NOMSG               (0xFFFFFFFF)
 
 #define READ_SP_MASTER_BAT_MASK       (0x000001)
 #define READ_SP_MASTER_ALT_MASK       (0x000002)
@@ -139,7 +144,7 @@ typedef unsigned char* (*pProcOutData) (unsigned int);
 #define READ_SP_GEARLEVER_UP_MASK     (0x080000)
 
 enum {
-    MPM_CNT                 = 3,
+    MP_MPM_CNT                 = 3, // MP multi-part message
     HID_READ_CNT            = 4,
     HID_ERROR               = -1,
     VENDOR_ID               = 0x06A3,
@@ -157,81 +162,72 @@ enum {
     AVIONICS_OFF,
     BAT1_ON,
     BAT1_OFF,
-    PITCHTRIM_UP,
-    PITCHTRIM_DN,
-    FLAPS_UP,
-    FLAPS_DN,
 
-    ALT_VAL,
-    ALT_UP,
-    ALT_DN,
-    VS_VAL_POS,
-    VS_VAL_NEG,
-    VS_UP,
-    VS_DN,
-    IAS_VAL,
-    IAS_UP,
-    IAS_DN,
-    HDG_VAL,
-    HDG_UP,
-    HDG_DN,
-    CRS_VAL,
-    CRS_UP,
-    CRS_DN,
-
-    BTN_AP_OFF,
-    BTN_AP_ARMED,
-    BTN_AP_ON,
-    BTN_AP_TOGGLE,
-
-    BTN_HDG_OFF,
-    BTN_HDG_ARMED,
-    BTN_HDG_CAPT,
-    BTN_HDG_TOGGLE,
-
-    BTN_NAV_OFF,
-    BTN_NAV_ARMED,
-    BTN_NAV_CAPT,
-    BTN_NAV_TOGGLE,
-
-    BTN_IAS_OFF,
-    BTN_IAS_ARMED,
-    BTN_IAS_CAPT,
-    BTN_IAS_TOGGLE,
-
-    BTN_ALT_OFF,
-    BTN_ALT_ARMED,
-    BTN_ALT_CAPT,
-    BTN_ALT_TOGGLE,
-
-    BTN_VS_OFF,
-    BTN_VS_ARMED,
-    BTN_VS_CAPT,
-    BTN_VS_TOGGLE,
-
-    BTN_APR_OFF,
-    BTN_APR_ARMED,
-    BTN_APR_CAPT,
-    BTN_APR_TOGGLE,
-
-    BTN_REV_OFF,
-    BTN_REV_ARMED,
-    BTN_REV_CAPT,
-    BTN_REV_TOGGLE,
-
-    KNOB_ALT_POS,
-    KNOB_VS_POS,
-    KNOB_IAS_POS,
-    KNOB_HDG_POS,
-    KNOB_CRS_POS,
-    AUTOTHROTTLE_OFF,
-    AUTOTHROTTLE_ON,
-    TUNING_RIGHT,
-    TUNING_LEFT,
-
+    // multi panel
+    MP_PITCHTRIM_UP,
+    MP_PITCHTRIM_DN,
+    MP_FLAPS_UP,
+    MP_FLAPS_DN,
+    MP_ALT_VAL,
+    MP_ALT_UP,
+    MP_ALT_DN,
+    MP_VS_VAL_POS,
+    MP_VS_VAL_NEG,
+    MP_VS_UP,
+    MP_VS_DN,
+    MP_IAS_VAL,
+    MP_IAS_UP,
+    MP_IAS_DN,
+    MP_HDG_VAL,
+    MP_HDG_UP,
+    MP_HDG_DN,
+    MP_CRS_VAL,
+    MP_CRS_UP,
+    MP_CRS_DN,
+    MP_BTN_AP_OFF,
+    MP_BTN_AP_ARMED,
+    MP_BTN_AP_ON,
+    MP_BTN_AP_TOGGLE,
+    MP_BTN_HDG_OFF,
+    MP_BTN_HDG_ARMED,
+    MP_BTN_HDG_CAPT,
+    MP_BTN_HDG_TOGGLE,
+    MP_BTN_NAV_OFF,
+    MP_BTN_NAV_ARMED,
+    MP_BTN_NAV_CAPT,
+    MP_BTN_NAV_TOGGLE,
+    MP_BTN_IAS_OFF,
+    MP_BTN_IAS_ARMED,
+    MP_BTN_IAS_CAPT,
+    MP_BTN_IAS_TOGGLE,
+    MP_BTN_ALT_OFF,
+    MP_BTN_ALT_ARMED,
+    MP_BTN_ALT_CAPT,
+    MP_BTN_ALT_TOGGLE,
+    MP_BTN_VS_OFF,
+    MP_BTN_VS_ARMED,
+    MP_BTN_VS_CAPT,
+    MP_BTN_VS_TOGGLE,
+    MP_BTN_APR_OFF,
+    MP_BTN_APR_ARMED,
+    MP_BTN_APR_CAPT,
+    MP_BTN_APR_TOGGLE,
+    MP_BTN_REV_OFF,
+    MP_BTN_REV_ARMED,
+    MP_BTN_REV_CAPT,
+    MP_BTN_REV_TOGGLE,
+    MP_KNOB_ALT_POS,
+    MP_KNOB_VS_POS,
+    MP_KNOB_IAS_POS,
+    MP_KNOB_HDG_POS,
+    MP_KNOB_CRS_POS,
+    MP_AUTOTHROTTLE_OFF,
+    MP_AUTOTHROTTLE_ON,
     MP_BLANK_SCRN,
     MP_ZERO_SCRN,
+    MP_PLANE_CRASH,
 
+    // switch panel
     SP_MAGNETOS_OFF,
     SP_MAGNETOS_RIGHT,
     SP_MAGNETOS_LEFT,
@@ -266,7 +262,7 @@ enum {
     SP_LANDING_GEAR_UP,
     SP_LANDING_GEAR_DOWN,
 
-    MPM                     = 0x0FFFFFFF, // multi-part message
+    MP_MPM                  = 0x0FFFFFFF, // multi-part message
     EXITING_THREAD_LOOP     = 0xFFFFFFFF,
 };
 

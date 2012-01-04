@@ -43,8 +43,8 @@ Multi Panel messages:
 
 ----
 Read
-    - 4 bytes, byte four is the  ID and  is always 0x00
-    - knob position and autothrottle state are always returned in the read data
+    - 4 bytes, byte four is the ID and is always 0x00
+    - knob position and auto throttle state are always returned in the read data
 
     - Knob mode being turned generates 1 message
     - Auto Throttle switch toggle generates 1 message
@@ -55,11 +55,11 @@ Read
     item                            byte        bit pos     value
     ----                            ----        -------     -----
 Knob Mode, 1 message  (X = Auto Throttle state):
-    alt knob                        0           0           1       0x00 00 X0 01
-    vs knob                         0           1           1       0x00 00 X0 02
-    ias knob                        0           2           1       0x00 00 X0 04
-    hdg knob                        0           3           1       0x00 00 X0 08
-    crs knob                        0           4           1       0x00 00 X0 10
+    alt pos                         0           0           1       0x00 00 X0 01
+    vs pos                          0           1           1       0x00 00 X0 02
+    ias pos                         0           2           1       0x00 00 X0 04
+    hdg pos                         0           3           1       0x00 00 X0 08
+    crs pos                         0           4           1       0x00 00 X0 10
 
 Tuning Knob, 2* messages (X = Auto Throttle state, YY = Mode knob status):
     tune knob clockwise             0           5           1       0x00 00 X0 2|YY
@@ -75,9 +75,9 @@ Push Buttons, 2* messages (X = Auto Throttle state, YY = Mode knob status):
     apr button                      1           5           1       0x00 00 X|20 YY
     rev button                      1           6           1       0x00 00 X|40 YY
 
-Autothrottle switch, 1 message (YY = Mode knob status):
-    autothrottle arm                1           7           1       0x00 00 80 YY
-    autothrottle off                1           7           0       0x00 00 00 YY
+Auto throttle switch, 1 message (YY = Mode knob status):
+    auto throttle arm               1           7           1       0x00 00 80 YY
+    auto throttle off               1           7           0       0x00 00 00 YY
 
 Flaps status, 2* messages (X = Auto Throttle state, YY = Mode knob status):
     flaps up                        2           0           1       0x00 01 X0 YY
