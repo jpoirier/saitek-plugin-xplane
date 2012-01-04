@@ -78,20 +78,20 @@ trigger     gRpTrigger(false, false);
 trigger     gMpTrigger(false, false);
 trigger     gSpTrigger(false, false);
 
-// Radio Panel resources
-jobqueue    gRp_ojq;
-jobqueue    gRp_ijq;
-jobqueue    gRp_sjq;
+//// Radio Panel resources
+//jobqueue    gRp_ojq;
+//jobqueue    gRp_ijq;
+//jobqueue    gRp_sjq;
 
-// Multi Panel resources
-jobqueue    gMp_ijq;
-jobqueue    gMp_ojq;
-jobqueue    gMp_sjq;
+//// Multi Panel resources
+//jobqueue    gMp_ijq;
+//jobqueue    gMp_ojq;
+//jobqueue    gMp_sjq;
 
-// Switch Panel resources
-jobqueue    gSp_ijq;
-jobqueue    gSp_ojq;
-jobqueue    gSp_sjq;
+//// Switch Panel resources
+//jobqueue    gSp_ijq;
+//jobqueue    gSp_ojq;
+//jobqueue    gSp_sjq;
 
 /**
  *
@@ -1035,9 +1035,11 @@ void ToPanelThread::mp_processing(uint32_t msg, uint32_t u32data) {
                 }
                 break;
             case MP_AUTOTHROTTLE_ON:
+                send = false;
                 mAthlOn = true;
                 break;
             case MP_AUTOTHROTTLE_OFF:
+                send = false;
                 mAthlOn = false;
                 break;
             default:

@@ -150,12 +150,12 @@ extern "C" {
     extern pt::trigger gMpTrigger;
     extern pt::trigger gSpTrigger;
 
-    extern pt::jobqueue gRp_ijq;
-    extern pt::jobqueue gRp_ojq;
-    extern pt::jobqueue gMp_ijq;
-    extern pt::jobqueue gMp_ojq;
-    extern pt::jobqueue gSp_ijq;
-    extern pt::jobqueue gSp_ojq;
+//    extern pt::jobqueue gRp_ijq;
+//    extern pt::jobqueue gRp_ojq;
+//    extern pt::jobqueue gMp_ijq;
+//    extern pt::jobqueue gMp_ojq;
+//    extern pt::jobqueue gSp_ijq;
+//    extern pt::jobqueue gSp_ojq;
 
     extern int volatile pc_run;
     extern int volatile threads_run;
