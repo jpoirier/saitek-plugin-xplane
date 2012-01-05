@@ -59,7 +59,11 @@
     gMpVrtVelDataRef            = XPLMFindDataRef(sMP_VVI_DIAL_FPM_DR);
     gMpArspdDataRef             = XPLMFindDataRef(sMP_AIRSPEED_DR);
     gMpHdgMagDataRef            = XPLMFindDataRef(sMP_HEADING_DIAL_DEG_MAG_PILOT_DR);
-    gMpHsiObsDegMagPltDataRef = XPLMFindDataRef(sMP_HSI_OBS_DEG_MAG_PILOT_DR);
+    gMpHsiObsDegMagPltDataRef   = XPLMFindDataRef(sMP_HSI_OBS_DEG_MAG_PILOT_DR);
+    gMpHsiSrcSelPltDataRef      = XPLMFindDataRef(sMP_HSI_SOURCE_SELECT_PILOT_DR);
+    gMpNav1CrsDefMagPltDataRef  = XPLMFindDataRef(sMP_NAV1_COURSE_DEG_MAG_PILOT_DR);
+    gMpNav2CrsDefMagPltDataRef  = XPLMFindDataRef(sMP_NAV2_COURSE_DEG_MAG_PILOT_DR);
+    gMpGpsCourseDataRef         = XPLMFindDataRef(sMP_GPS_COURSE_DR);
 //    gMpAltDialFtDataRef      = XPLMFindDataRef(sMP_ALTITUDE_DIAL_FT_DR);
 //    gMpArspdDataRef          = XPLMFindDataRef(sMP_AIRSPEED_DIAL_KTS_MACH_DR);
 //    gMpVrtVelDataRef          = XPLMFindDataRef(sMP_VERTICAL_VELOCITY_DR);

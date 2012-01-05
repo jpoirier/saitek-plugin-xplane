@@ -152,9 +152,9 @@ enum {
 // Flightloop callback message queue processing count defaults.
 // TODO: create a small user menu with a user adjustment slider (range ?)
 enum {
-    RP_MSGPROC_CNT = 5,
-    MP_MSGPROC_CNT = 5,
-    SP_MSGPROC_CNT = 5
+    RP_MSGPROC_CNT = 100,
+    MP_MSGPROC_CNT = 100,
+    SP_MSGPROC_CNT = 100
 };
 
 // Flightloop callback message queue processing globals.
@@ -234,6 +234,10 @@ XPLMDataRef gMpFlghtDirModeDataRef = NULL;
 XPLMDataRef gMpHdgMagDataRef = NULL;
 XPLMDataRef gMpHdgStatBtnDataRef = NULL;
 XPLMDataRef gMpHsiObsDegMagPltDataRef = NULL;
+XPLMDataRef gMpHsiSrcSelPltDataRef = NULL;
+XPLMDataRef gMpNav1CrsDefMagPltDataRef = NULL;
+XPLMDataRef gMpNav2CrsDefMagPltDataRef = NULL;
+XPLMDataRef gMpGpsCourseDataRef = NULL;
 XPLMDataRef gMpNavStatBtnDataRef = NULL;
 XPLMDataRef gMpSpdStatBtnDataRef = NULL;
 XPLMDataRef gMpVrtVelDataRef = NULL;
@@ -389,7 +393,14 @@ jobqueue    gSp_sjq;
 #define sMP_VVI_DIAL_FPM_DR                 "sim/cockpit2/autopilot/vvi_dial_fpm"
 #define sMP_AIRSPEED_DR                     "sim/cockpit/autopilot/airspeed"
 #define sMP_HEADING_DIAL_DEG_MAG_PILOT_DR   "sim/cockpit2/autopilot/heading_dial_deg_mag_pilot"
+
+//#define sMP_HSI_BEARING_DEG_MAG_PILOT        "sim/cockpit2/radios/indicators/hsi_bearing_deg_mag_pilot"
 #define sMP_HSI_OBS_DEG_MAG_PILOT_DR        "sim/cockpit2/radios/actuators/hsi_obs_deg_mag_pilot"
+#define sMP_HSI_SOURCE_SELECT_PILOT_DR      "sim/cockpit2/radios/actuators/HSI_source_select_pilot"
+#define sMP_NAV1_COURSE_DEG_MAG_PILOT_DR    "sim/cockpit2/radios/actuators/nav1_course_deg_mag_pilot"
+#define sMP_NAV2_COURSE_DEG_MAG_PILOT_DR    "sim/cockpit2/radios/actuators/nav2_course_deg_mag_pilot"
+#define sMP_GPS_COURSE_DR                   "sim/cockpit/gps/course"
+
 //#define sMP_ALTITUDE_DIAL_FT_DR            "sim/cockpit2/autopilot/altitude_dial_ft"
 //#define sMP_AIRSPEED_DIAL_KTS_MACH_DR      "sim/cockpit2/autopilot/airspeed_dial_kts_mach"
 //#define sMP_VERTICAL_VELOCITY_DR           "sim/cockpit/autopilot/vertical_velocity"
@@ -630,75 +641,75 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
         break;
     case MP_CMD_OTTO_ALT_UP:
     case MP_CMD_OTTO_ALT_DN:
-            m = new uint32_t[MP_MPM_CNT];
-            m[0] = MP_MPM;
-            m[1] = MP_ALT_VAL_MSG;
-            m[2] = static_cast<uint32_t>(floor(XPLMGetDataf(gMpAltDataRef)));
+        m = new uint32_t[MP_MPM_CNT];
+        m[0] = MP_MPM;
+        m[1] = MP_ALT_VAL_MSG;
+        m[2] = static_cast<uint32_t>(floor(XPLMGetDataf(gMpAltDataRef)));
 #if DO_LPRINTFS
-            sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_ALT 0x%X:%d:%d \n", m[0], m[1], m[2]);
-            LPRINTF(tmp);
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_ALT 0x%X:%d:%d \n", m[0], m[1], m[2]);
+        LPRINTF(tmp);
 #endif
-            gMp_ojq.post(new myjob(m));
+        gMp_ojq.post(new myjob(m));
         break;
     case MP_CMD_OTTO_VS_UP:
     case MP_CMD_OTTO_VS_DN:
-            m = new uint32_t[MP_MPM_CNT];
-            f = XPLMGetDataf(gMpVrtVelDataRef);
-            m[0] = MP_MPM;
-            m[1] = (f < 0) ? MP_VS_VAL_NEG_MSG : MP_VS_VAL_POS_MSG;
-            m[2] = static_cast<uint32_t>(fabs(f));
+        m = new uint32_t[MP_MPM_CNT];
+        f = XPLMGetDataf(gMpVrtVelDataRef);
+        m[0] = MP_MPM;
+        m[1] = (f < 0) ? MP_VS_VAL_NEG_MSG : MP_VS_VAL_POS_MSG;
+        m[2] = static_cast<uint32_t>(fabs(f));
 #if DO_LPRINTFS
-            sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_VS 0x%X:%d:%d \n", m[0], m[1], m[2]);
-            LPRINTF(tmp);
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_VS 0x%X:%d:%d \n", m[0], m[1], m[2]);
+        LPRINTF(tmp);
 #endif
-            gMp_ojq.post(new myjob(m));
+        gMp_ojq.post(new myjob(m));
         break;
     case MP_CMD_OTTO_IAS_UP:
     case MP_CMD_OTTO_IAS_DN:
-            m = new uint32_t[MP_MPM_CNT];
-            m[0] = MP_MPM;
-            m[1] = MP_IAS_VAL_MSG;
-            m[2] = static_cast<uint32_t>(floor(XPLMGetDataf(gMpArspdDataRef)));
+        m = new uint32_t[MP_MPM_CNT];
+        m[0] = MP_MPM;
+        m[1] = MP_IAS_VAL_MSG;
+        m[2] = static_cast<uint32_t>(floor(XPLMGetDataf(gMpArspdDataRef)));
 #if DO_LPRINTFS
-            sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_IAS 0x%X:%d:%d \n", m[0], m[1], m[2]);
-            LPRINTF(tmp);
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_IAS 0x%X:%d:%d \n", m[0], m[1], m[2]);
+        LPRINTF(tmp);
 #endif
-            gMp_ojq.post(new myjob(m));
+        gMp_ojq.post(new myjob(m));
         break;
     case MP_CMD_OTTO_HDG_UP:
     case MP_CMD_OTTO_HDG_DN:
-            m = new uint32_t[MP_MPM_CNT];
-            m[0] = MP_MPM;
-            m[1] = MP_HDG_VAL_MSG;
-            m[2] = static_cast<uint32_t>(floor(XPLMGetDataf(gMpHdgMagDataRef)));
+        m = new uint32_t[MP_MPM_CNT];
+        m[0] = MP_MPM;
+        m[1] = MP_HDG_VAL_MSG;
+        m[2] = static_cast<uint32_t>(floor(XPLMGetDataf(gMpHdgMagDataRef)));
 #if DO_LPRINTFS
-            sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_HDG 0x%X:%d:%d \n", m[0], m[1], m[2]);
-            LPRINTF(tmp);
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_HDG 0x%X:%d:%d \n", m[0], m[1], m[2]);
+        LPRINTF(tmp);
 #endif
-            gMp_ojq.post(new myjob(m));
+        gMp_ojq.post(new myjob(m));
         break;
     case MP_CMD_OTTO_CRS_UP:
     case MP_CMD_OTTO_CRS_DN:
-            m = new uint32_t[MP_MPM_CNT];
-            m[0] = MP_MPM;
-            m[1] = MP_CRS_VAL_MSG;
-            m[2] = static_cast<uint32_t>(floor(XPLMGetDataf(gMpHsiObsDegMagPltDataRef)));
+        m = new uint32_t[MP_MPM_CNT];
+        m[0] = MP_MPM;
+        m[1] = MP_CRS_VAL_MSG;
+        m[2] = static_cast<uint32_t>(floor(XPLMGetDataf(gMpHsiObsDegMagPltDataRef)));
 #if DO_LPRINTFS
-            sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_CRS 0x%X:%d:%d \n", m[0], m[1], m[2]);
-            LPRINTF(tmp);
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_CRS 0x%X:%d:%d \n", m[0], m[1], m[2]);
+        LPRINTF(tmp);
 #endif
-            gMp_ojq.post(new myjob(m));
+        gMp_ojq.post(new myjob(m));
         break;
     //--- Buttons
     case MP_CMD_OTTO_ALT_HOLD_BTN:
-            m = new uint32_t;
-            x = (uint32_t)XPLMGetDatai(gMpAltHoldStatBtnDataRef);
-            *m = (x == 0) ? MP_BTN_ALT_OFF_MSG : ((x == 2) ? MP_BTN_ALT_CAPT_MSG : MP_BTN_ALT_ARMED_MSG);
+        m = new uint32_t;
+        x = (uint32_t)XPLMGetDatai(gMpAltHoldStatBtnDataRef);
+        *m = (x == 0) ? MP_BTN_ALT_OFF_MSG : ((x == 2) ? MP_BTN_ALT_CAPT_MSG : MP_BTN_ALT_ARMED_MSG);
 #if DO_LPRINTFS
-            sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_ALT_HOLD_BTN %d \n", x);
-            LPRINTF(tmp);
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_ALT_HOLD_BTN %d \n", x);
+        LPRINTF(tmp);
 #endif
-            gMp_ojq.post(new myjob(m));
+        gMp_ojq.post(new myjob(m));
         break;
 //    case MP_CMD_OTTO_ALT_ARM_BTN:
 //        pexchange((int*)&t, gMpBtn_Alt_TogglePending);
@@ -712,64 +723,64 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
 //        }
 //        break;
     case MP_CMD_OTTO_APR_BTN:
-            m = new uint32_t;
-            x = (uint32_t)XPLMGetDatai(gMpApprchStatBtnDataRef);
-            *m = (x == 0) ? MP_BTN_APR_OFF_MSG : ((x == 2) ? MP_BTN_APR_CAPT_MSG : MP_BTN_APR_ARMED_MSG);
+        m = new uint32_t;
+        x = (uint32_t)XPLMGetDatai(gMpApprchStatBtnDataRef);
+        *m = (x == 0) ? MP_BTN_APR_OFF_MSG : ((x == 2) ? MP_BTN_APR_CAPT_MSG : MP_BTN_APR_ARMED_MSG);
 #if DO_LPRINTFS
-            sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_APR_BTN %d \n", x);
-            LPRINTF(tmp);
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_APR_BTN %d \n", x);
+        LPRINTF(tmp);
 #endif
-            gMp_ojq.post(new myjob(m));
+        gMp_ojq.post(new myjob(m));
         break;
     case MP_CMD_OTTO_REV_BTN:
-            m = new uint32_t;
-            x = (uint32_t)XPLMGetDatai(gMpBckCrsStatBtnDataRef);
-            *m = (x == 0) ? MP_BTN_REV_OFF_MSG : ((x == 2) ? MP_BTN_REV_CAPT_MSG : MP_BTN_REV_ARMED_MSG);
+        m = new uint32_t;
+        x = (uint32_t)XPLMGetDatai(gMpBckCrsStatBtnDataRef);
+        *m = (x == 0) ? MP_BTN_REV_OFF_MSG : ((x == 2) ? MP_BTN_REV_CAPT_MSG : MP_BTN_REV_ARMED_MSG);
 #if DO_LPRINTFS
-            sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_REV_BTN %d \n", x);
-            LPRINTF(tmp);
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_REV_BTN %d \n", x);
+        LPRINTF(tmp);
 #endif
-            gMp_ojq.post(new myjob(m));
+        gMp_ojq.post(new myjob(m));
         break;
     case MP_CMD_OTTO_HDG_BTN:
-            m = new uint32_t;
-            x = (uint32_t)XPLMGetDatai(gMpHdgStatBtnDataRef);
-            *m = (x == 0) ? MP_BTN_HDG_OFF_MSG : ((x == 2) ? MP_BTN_HDG_CAPT_MSG : MP_BTN_HDG_ARMED_MSG);
+        m = new uint32_t;
+        x = (uint32_t)XPLMGetDatai(gMpHdgStatBtnDataRef);
+        *m = (x == 0) ? MP_BTN_HDG_OFF_MSG : ((x == 2) ? MP_BTN_HDG_CAPT_MSG : MP_BTN_HDG_ARMED_MSG);
 #if DO_LPRINTFS
-            sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_HDG_BTN %d \n", x);
-            LPRINTF(tmp);
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_HDG_BTN %d \n", x);
+        LPRINTF(tmp);
 #endif
-            gMp_ojq.post(new myjob(m));
+        gMp_ojq.post(new myjob(m));
         break;
     case MP_CMD_OTTO_NAV_BTN:
-            m = new uint32_t;
-            x = (uint32_t)XPLMGetDatai(gMpNavStatBtnDataRef);
-            *m = (x == 0) ? MP_BTN_NAV_OFF_MSG : ((x == 2) ? MP_BTN_NAV_CAPT_MSG : MP_BTN_NAV_ARMED_MSG);
+        m = new uint32_t;
+        x = (uint32_t)XPLMGetDatai(gMpNavStatBtnDataRef);
+        *m = (x == 0) ? MP_BTN_NAV_OFF_MSG : ((x == 2) ? MP_BTN_NAV_CAPT_MSG : MP_BTN_NAV_ARMED_MSG);
 #if DO_LPRINTFS
-            sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_NAV_BTN %d \n", x);
-            LPRINTF(tmp);
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_NAV_BTN %d \n", x);
+        LPRINTF(tmp);
 #endif
-            gMp_ojq.post(new myjob(m));
+        gMp_ojq.post(new myjob(m));
         break;
     case MP_CMD_OTTO_IAS_BTN:
-            m = new uint32_t;
-            x = (uint32_t)XPLMGetDatai(gMpSpdStatBtnDataRef);
-            *m = (x == 0) ? MP_BTN_IAS_OFF_MSG : ((x == 2) ? MP_BTN_IAS_CAPT_MSG : MP_BTN_IAS_ARMED_MSG);
+        m = new uint32_t;
+        x = (uint32_t)XPLMGetDatai(gMpSpdStatBtnDataRef);
+        *m = (x == 0) ? MP_BTN_IAS_OFF_MSG : ((x == 2) ? MP_BTN_IAS_CAPT_MSG : MP_BTN_IAS_ARMED_MSG);
 #if DO_LPRINTFS
-            sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_IAS_BTN %d \n", x);
-            LPRINTF(tmp);
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_IAS_BTN %d \n", x);
+        LPRINTF(tmp);
 #endif
-            gMp_ojq.post(new myjob(m));
+        gMp_ojq.post(new myjob(m));
         break;
     case MP_CMD_OTTO_VS_BTN:
-            m = new uint32_t;
-            x = (uint32_t)XPLMGetDatai(gMpVviStatBtnDataRef);
-            *m = (x == 0) ? MP_BTN_VS_OFF_MSG : ((x == 2) ? MP_BTN_VS_CAPT_MSG : MP_BTN_VS_ARMED_MSG);
+        m = new uint32_t;
+        x = (uint32_t)XPLMGetDatai(gMpVviStatBtnDataRef);
+        *m = (x == 0) ? MP_BTN_VS_OFF_MSG : ((x == 2) ? MP_BTN_VS_CAPT_MSG : MP_BTN_VS_ARMED_MSG);
 #if DO_LPRINTFS
-            sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_VS_BTN %d \n", x);
-            LPRINTF(tmp);
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_VS_BTN %d \n", x);
+        LPRINTF(tmp);
 #endif
-            gMp_ojq.post(new myjob(m));
+        gMp_ojq.post(new myjob(m));
         break;
     default:
         break;
