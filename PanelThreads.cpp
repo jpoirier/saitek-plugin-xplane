@@ -381,22 +381,22 @@ void FromPanelThread::mp_processing(uint32_t msg) {
  */
 void FromPanelThread::sp_processing(uint32_t msg) {
 
-    uint32_t masterbat = msg & READ_SP_MASTER_BAT_MASK;
-    uint32_t masteralt = msg & READ_SP_MASTER_ALT_MASK;
-    uint32_t avionicsmaster = msg & READ_SP_AVIONICS_MASTER_MASK;
-    uint32_t fuelpump = msg & READ_SP_FUEL_PUMP_MASK;
-    uint32_t deice = msg & READ_SP_DE_ICE_MASK;
-    uint32_t pitotheat = msg & READ_SP_PITOT_HEAT_MASK;
-    uint32_t cowl = msg & READ_SP_COWL_MASK;
-    uint32_t lightspanel = msg & READ_SP_LIGHTS_PANEL_MASK;
-    uint32_t lightsbeacon = msg & READ_SP_LIGHTS_BEACON_MASK;
-    uint32_t lightsnav = msg & READ_SP_LIGHTS_NAV_MASK;
-    uint32_t lightsstrobe = msg & READ_SP_LIGHTS_STROBE_MASK;
-    uint32_t lightstaxi = msg & READ_SP_LIGHTS_TAXI_MASK;
-    uint32_t lightslanding = msg & READ_SP_LIGHTS_LANDING_MASK;
-    uint32_t enginesknob = msg & READ_SP_ENGINES_KNOB_MASK;
-    uint32_t gearleverup = msg & READ_SP_GEARLEVER_UP_MASK;
-    uint32_t gearleverdown = msg & READ_SP_GEARLEVER_DOWN_MASK;
+    uint32_t masterbat = msg & SP_READ_MASTER_BAT_MASK;
+    uint32_t masteralt = msg & SP_READ_MASTER_ALT_MASK;
+    uint32_t avionicsmaster = msg & SP_READ_AVIONICS_MASTER_MASK;
+    uint32_t fuelpump = msg & SP_READ_FUEL_PUMP_MASK;
+    uint32_t deice = msg & SP_READ_DE_ICE_MASK;
+    uint32_t pitotheat = msg & SP_READ_PITOT_HEAT_MASK;
+    uint32_t cowl = msg & SP_READ_COWL_MASK;
+    uint32_t lightspanel = msg & SP_READ_LIGHTS_PANEL_MASK;
+    uint32_t lightsbeacon = msg & SP_READ_LIGHTS_BEACON_MASK;
+    uint32_t lightsnav = msg & SP_READ_LIGHTS_NAV_MASK;
+    uint32_t lightsstrobe = msg & SP_READ_LIGHTS_STROBE_MASK;
+    uint32_t lightstaxi = msg & SP_READ_LIGHTS_TAXI_MASK;
+    uint32_t lightslanding = msg & SP_READ_LIGHTS_LANDING_MASK;
+    uint32_t enginesknob = msg & SP_READ_ENGINES_KNOB_MASK;
+    uint32_t gearleverup = msg & SP_READ_GEARLEVER_UP_MASK;
+    uint32_t gearleverdown = msg & SP_READ_GEARLEVER_DOWN_MASK;
 
     uint32_t* x;
     bool to_iqueue = true;
@@ -409,19 +409,19 @@ void FromPanelThread::sp_processing(uint32_t msg) {
 
     if (enginesknob == 0x002000) {
         to_iqueue = false;
-    	msg = SP_MAGNETOS_OFF;
+    	msg = SP_MAGNETOS_OFF_MSG;
     } else if (enginesknob == 0x004000) {
         to_iqueue = false;
-    	msg = SP_MAGNETOS_RIGHT;
+    	msg = SP_MAGNETOS_RIGHT_MSG;
     } else if (enginesknob == 0x008000) {
         to_iqueue = false;
-    	msg = SP_MAGNETOS_LEFT;
+    	msg = SP_MAGNETOS_LEFT_MSG;
     } else if (enginesknob == 0x010000) {
         to_iqueue = false;
-    	msg = SP_MAGNETOS_BOTH;
+    	msg = SP_MAGNETOS_BOTH_MSG;
     } else if (enginesknob == 0x020000) {
         to_iqueue = false;
-    	msg = SP_MAGNETOS_START;
+    	msg = SP_MAGNETOS_START_MSG;
     }
 
     if (msg) {
@@ -434,66 +434,66 @@ void FromPanelThread::sp_processing(uint32_t msg) {
 
     if (masterbat) {
         to_iqueue = false;
-        msg = SP_MASTER_BATTERY_ON;
+        msg = SP_MASTER_BATTERY_ON_MSG;
     } else {
         to_iqueue = false;
-        msg = SP_MASTER_BATTERY_OFF;
+        msg = SP_MASTER_BATTERY_OFF_MSG;
     }
 
     if (masteralt) {
         to_iqueue = false;
-        msg = SP_MASTER_ALT_BATTERY_ON;
+        msg = SP_MASTER_ALT_BATTERY_ON_MSG;
     } else {
         to_iqueue = false;
-        msg = SP_MASTER_ALT_BATTERY_OFF;
+        msg = SP_MASTER_ALT_BATTERY_OFF_MSG;
     }
 
     if (avionicsmaster) {
         to_iqueue = false;
-        msg = SP_MASTER_AVIONICS_ON;
+        msg = SP_MASTER_AVIONICS_ON_MSG;
     } else {
         to_iqueue = false;
-        msg = SP_MASTER_AVIONICS_OFF;
+        msg = SP_MASTER_AVIONICS_OFF_MSG;
     }
 
     if (fuelpump) {
         to_iqueue = false;
-        msg = SP_FUEL_PUMP_ON;
+        msg = SP_FUEL_PUMP_ON_MSG;
     } else {
         to_iqueue = false;
-        msg = SP_FUEL_PUMP_OFF;
+        msg = SP_FUEL_PUMP_OFF_MSG;
     }
 
     if (deice) {
         to_iqueue = false;
-        msg = SP_DEICE_ON;
+        msg = SP_DEICE_ON_MSG;
     } else {
         to_iqueue = false;
-        msg = SP_DEICE_OFF;
+        msg = SP_DEICE_OFF_MSG;
     }
 
     if (pitotheat) {
         to_iqueue = false;
-        msg = SP_PITOT_HEAT_ON;
+        msg = SP_PITOT_HEAT_ON_MSG;
     } else {
         to_iqueue = false;
-        msg = SP_PITOT_HEAT_OFF;
+        msg = SP_PITOT_HEAT_OFF_MSG;
     }
 
     if (cowl) {
         to_iqueue = false;
-        msg = SP_COWL_CLOSED;
+        msg = SP_COWL_CLOSED_MSG;
     } else {
         to_iqueue = false;
-        msg = SP_COWL_OPEN;
+        msg = SP_COWL_OPEN_MSG;
     }
 
     if (lightspanel) {
         to_iqueue = false;
-        msg = SP_LIGHTS_PANEL_ON;
+        msg = SP_LIGHTS_PANEL_ON_MSG;
     } else {
         to_iqueue = false;
-        msg = SP_LIGHTS_PANEL_OFF;
+        msg = SP_LIGHTS_PANEL_OFF_MSG;
     }
 
     if (msg) {
@@ -506,10 +506,10 @@ void FromPanelThread::sp_processing(uint32_t msg) {
 
     if (lightsbeacon) {
         to_iqueue = false;
-        msg = SP_LIGHTS_BEACON_ON;
+        msg = SP_LIGHTS_BEACON_ON_MSG;
     } else {
         to_iqueue = false;
-        msg = SP_LIGHTS_BEACON_OFF;
+        msg = SP_LIGHTS_BEACON_OFF_MSG;
     }
 
     if (msg) {
@@ -522,10 +522,10 @@ void FromPanelThread::sp_processing(uint32_t msg) {
 
     if (lightsnav) {
         to_iqueue = false;
-        msg = SP_LIGHTS_NAV_ON;
+        msg = SP_LIGHTS_NAV_ON_MSG;
     } else {
         to_iqueue = false;
-        msg = SP_LIGHTS_NAV_OFF;
+        msg = SP_LIGHTS_NAV_OFF_MSG;
     }
 
     if (msg) {
@@ -538,10 +538,10 @@ void FromPanelThread::sp_processing(uint32_t msg) {
 
     if (lightsstrobe) {
         to_iqueue = false;
-        msg = SP_LIGHTS_STROBE_ON;
+        msg = SP_LIGHTS_STROBE_ON_MSG;
     } else {
         to_iqueue = false;
-        msg = SP_LIGHTS_STROBE_OFF;
+        msg = SP_LIGHTS_STROBE_OFF_MSG;
     }
 
     if (msg) {
@@ -554,10 +554,10 @@ void FromPanelThread::sp_processing(uint32_t msg) {
 
     if (lightstaxi) {
         to_iqueue = false;
-        msg = SP_LIGHTS_TAXI_ON;
+        msg = SP_LIGHTS_TAXI_ON_MSG;
     } else {
         to_iqueue = false;
-        msg = SP_LIGHTS_TAXI_OFF;
+        msg = SP_LIGHTS_TAXI_OFF_MSG;
     }
 
     if (msg) {
@@ -570,10 +570,10 @@ void FromPanelThread::sp_processing(uint32_t msg) {
 
     if (lightslanding) {
         to_iqueue = false;
-        msg = SP_LIGHTS_LANDING_ON;
+        msg = SP_LIGHTS_LANDING_ON_MSG;
     } else {
         to_iqueue = false;
-        msg = SP_LIGHTS_LANDING_OFF;
+        msg = SP_LIGHTS_LANDING_OFF_MSG;
     }
 
     if (msg) {
@@ -586,12 +586,12 @@ void FromPanelThread::sp_processing(uint32_t msg) {
 
     if (gearleverup) {
         to_iqueue = false;
-        msg = SP_LANDING_GEAR_UP;
+        msg = SP_LANDING_GEAR_UP_MSG;
     }
 
     if (gearleverdown) {
         to_iqueue = false;
-        msg = SP_LANDING_GEAR_DOWN;
+        msg = SP_LANDING_GEAR_DOWN_MSG;
     }
 
     if (msg) {
