@@ -222,23 +222,23 @@ XPLMCommandRef gMpVrtclSpdCmdRef = NULL;
 // Multi Panel Data Refs
 XPLMDataRef gMpOttoOvrrde = NULL;
 //XPLMDataRef gMpAltDialFtDataRef = NULL;
-XPLMDataRef gMpAltHoldStatDataRef = NULL;
+XPLMDataRef gMpAltHoldStatBtnDataRef = NULL;
 //XPLMDataRef gMpAltArmStatDataRef = NULL;
-XPLMDataRef gMpApprchStatDataRef = NULL;
+XPLMDataRef gMpApprchStatBtnDataRef = NULL;
 
 XPLMDataRef gMpApOnDataRef = NULL;
 XPLMDataRef gMpArspdDataRef = NULL;
 
-XPLMDataRef gMpBckCrsStatDataRef = NULL;
+XPLMDataRef gMpBckCrsStatBtnDataRef = NULL;
 XPLMDataRef gMpFlghtDirModeDataRef = NULL;
 XPLMDataRef gMpHdgMagDataRef = NULL;
-XPLMDataRef gMpHdgStatDataRef = NULL;
+XPLMDataRef gMpHdgStatBtnDataRef = NULL;
 XPLMDataRef gMpHsiObsDegMagPltDataRef = NULL;
-XPLMDataRef gMpNavStatDataRef = NULL;
-XPLMDataRef gMpSpdStatDataRef = NULL;
+XPLMDataRef gMpNavStatBtnDataRef = NULL;
+XPLMDataRef gMpSpdStatBtnDataRef = NULL;
 XPLMDataRef gMpVrtVelDataRef = NULL;
-XPLMDataRef gMpVviStatDataRef = NULL;
-
+XPLMDataRef gMpVviStatBtnDataRef = NULL;
+XPLMDataRef gMpAltDataRef = NULL;
 XPLMDataRef gMpAltHoldFtDataRef = NULL;
 
 // Multi Panel reference counters
@@ -348,63 +348,66 @@ jobqueue    gSp_sjq;
 
 // Multi Panel command and data refs
 // command refs
-#define sMP_ALTITUDE_DOWN              "sim/autopilot/altitude_down"
-#define sMP_ALTITUDE_UP                "sim/autopilot/altitude_up"
-#define sMP_VERTICAL_SPEED_DOWN        "sim/autopilot/vertical_speed_down"
-#define sMP_VERTICAL_SPEED_UP          "sim/autopilot/vertical_speed_up"
-#define sMP_AIRSPEED_DOWN              "sim/autopilot/airspeed_down"
-#define sMP_AIRSPEED_UP                "sim/autopilot/airspeed_up"
-#define sMP_HEADING_DOWN               "sim/autopilot/heading_down"
-#define sMP_HEADING_UP                 "sim/autopilot/heading_up"
-#define sMP_OBS_HSI_DOWN               "sim/radios/obs_HSI_down"
-#define sMP_OBS_HSI_UP                 "sim/radios/obs_HSI_up"
-#define sMP_FLIGHT_DIR_ON_ONLY         "sim/autopilot/flight_dir_on_only"
-#define sMP_FDIR_SERVOS_TOGGLE         "sim/autopilot/fdir_servos_toggle"
-#define sMP_SERVOS_AND_FLIGHT_DIR_ON   "sim/autopilot/servos_and_flight_dir_on"
-#define sMP_SERVOS_AND_FLIGHT_DIR_OFF  "sim/autopilot/servos_and_flight_dir_off"
-#define sMP_HEADING                    "sim/autopilot/heading"
-#define sMP_NAV_ARM                    "sim/autopilot/NAV"
-#define sMP_LEVEL_CHANGE               "sim/autopilot/level_change"
-#define sMP_ALTITUDE_HOLD              "sim/autopilot/altitude_hold"
-#define sMP_ALTITUDE_ARM               "sim/autopilot/altitude_arm"
-#define sMP_VERTICAL_SPEED             "sim/autopilot/vertical_speed"
-#define sMP_APPROACH                   "sim/autopilot/approach"
-#define sMP_BACK_COURSE                "sim/autopilot/back_course"
-#define sMP_AUTOTHROTTLE_ON            "sim/autopilot/autothrottle_on"
-#define sMP_AUTOTHROTTLE_OFF           "sim/autopilot/autothrottle_off"
-#define sMP_AUTOTHROTTLE_TOGGLE        "sim/autopilot/autothrottle_toggle"
-#define sMP_FLAPS_DOWN                 "sim/flight_controls/flaps_down"
-#define sMP_FLAPS_UP                   "sim/flight_controls/flaps_up"
-#define sMP_PITCH_TRIM_DOWN            "sim/flight_controls/pitch_trim_down"
-#define sMP_PITCH_TRIM_UP              "sim/flight_controls/pitch_trim_up"
-#define sMP_PITCH_TRIM_TAKEOFF         "sim/flight_controls/pitch_trim_takeoff"
+#define sMP_ALTITUDE_DOWN_CR                "sim/autopilot/altitude_down"
+#define sMP_ALTITUDE_UP_CR                  "sim/autopilot/altitude_up"
+#define sMP_VERTICAL_SPEED_DOWN_CR          "sim/autopilot/vertical_speed_down"
+#define sMP_VERTICAL_SPEED_UP_CR            "sim/autopilot/vertical_speed_up"
+#define sMP_AIRSPEED_DOWN_CR                "sim/autopilot/airspeed_down"
+#define sMP_AIRSPEED_UP_CR                  "sim/autopilot/airspeed_up"
+#define sMP_HEADING_DOWN_CR                 "sim/autopilot/heading_down"
+#define sMP_HEADING_UP_CR                   "sim/autopilot/heading_up"
+#define sMP_OBS_HSI_DOWN_CR                 "sim/radios/obs_HSI_down"
+#define sMP_OBS_HSI_UP_CR                   "sim/radios/obs_HSI_up"
+
+#define sMP_FLIGHT_DIR_ON_ONLY_CR           "sim/autopilot/flight_dir_on_only"
+#define sMP_FDIR_SERVOS_TOGGLE_CR           "sim/autopilot/fdir_servos_toggle"
+#define sMP_SERVOS_AND_FLIGHT_DIR_ON_CR     "sim/autopilot/servos_and_flight_dir_on"
+#define sMP_SERVOS_AND_FLIGHT_DIR_OFF_CR    "sim/autopilot/servos_and_flight_dir_off"
+#define sMP_HEADING_CR                      "sim/autopilot/heading"
+#define sMP_NAV_ARM_CR                      "sim/autopilot/NAV"
+#define sMP_LEVEL_CHANGE_CR                 "sim/autopilot/level_change"
+#define sMP_ALTITUDE_HOLD_CR                "sim/autopilot/altitude_hold"
+#define sMP_ALTITUDE_ARM_CR                 "sim/autopilot/altitude_arm"
+#define sMP_VERTICAL_SPEED_CR               "sim/autopilot/vertical_speed"
+#define sMP_APPROACH_CR                     "sim/autopilot/approach"
+#define sMP_BACK_COURSE_CR                  "sim/autopilot/back_course"
+
+#define sMP_AUTOTHROTTLE_ON_CR              "sim/autopilot/autothrottle_on"
+#define sMP_AUTOTHROTTLE_OFF_CR             "sim/autopilot/autothrottle_off"
+#define sMP_AUTOTHROTTLE_TOGGLE_CR          "sim/autopilot/autothrottle_toggle"
+
+#define sMP_FLAPS_DOWN_CR                   "sim/flight_controls/flaps_down"
+#define sMP_FLAPS_UP_CR                     "sim/flight_controls/flaps_up"
+#define sMP_PITCH_TRIM_DOWN_CR              "sim/flight_controls/pitch_trim_down"
+#define sMP_PITCH_TRIM_UP_CR                "sim/flight_controls/pitch_trim_up"
+#define sMP_PITCH_TRIM_TAKEOFF_CR           "sim/flight_controls/pitch_trim_takeoff"
 
 // data refs
-#define sAVIONICS_POWER_ON              "sim/cockpit2/switches/avionics_power_on"
-#define sBATTERY_ON                     "sim/cockpit/electrical/battery_on"
-#define sMP_AUTOPILOT_ON               "sim/cockpit2/autopilot/autopilot_on"
-#define sMP_FLIGHT_DIRECTOR_MODE       "sim/cockpit2/autopilot/flight_director_mode"
+#define sAVIONICS_POWER_ON_DR               "sim/cockpit2/switches/avionics_power_on"
+#define sBATTERY_ON_DR                      "sim/cockpit/electrical/battery_on"
+#define sMP_AUTOPILOT_ON_DR                 "sim/cockpit2/autopilot/autopilot_on"
+#define sMP_FLIGHT_DIRECTOR_MODE_DR         "sim/cockpit2/autopilot/flight_director_mode"
 
-#define sMP_ALTITUDE_HOLD_FT           "sim/cockpit2/autopilot/altitude_hold_ft"
-#define sMP_VVI_DIAL_FPM               "sim/cockpit2/autopilot/vvi_dial_fpm"
-#define sMP_AIRSPEED                   "sim/cockpit/autopilot/airspeed"
-#define sMP_HEADING_DIAL_DEG_MAG_PILOT "sim/cockpit2/autopilot/heading_dial_deg_mag_pilot"
-#define sMP_HSI_OBS_DEG_MAG_PILOT      "sim/cockpit2/radios/actuators/hsi_obs_deg_mag_pilot"
+#define sMP_ALTITUDE_DR                     "sim/cockpit/autopilot/altitude"
+#define sMP_ALTITUDE_HOLD_FT_DR             "sim/cockpit2/autopilot/altitude_hold_ft"
+#define sMP_VVI_DIAL_FPM_DR                 "sim/cockpit2/autopilot/vvi_dial_fpm"
+#define sMP_AIRSPEED_DR                     "sim/cockpit/autopilot/airspeed"
+#define sMP_HEADING_DIAL_DEG_MAG_PILOT_DR   "sim/cockpit2/autopilot/heading_dial_deg_mag_pilot"
+#define sMP_HSI_OBS_DEG_MAG_PILOT_DR        "sim/cockpit2/radios/actuators/hsi_obs_deg_mag_pilot"
 
-//#define sMP_ALTITUDE_DIAL_FT           "sim/cockpit2/autopilot/altitude_dial_ft"
-//#define sMP_AIRSPEED_DIAL_KTS_MACH     "sim/cockpit2/autopilot/airspeed_dial_kts_mach"
-//#define sMP_VERTICAL_VELOCITY          "sim/cockpit/autopilot/vertical_velocity"
-#define sMP_ALTITUDE                   "sim/cockpit/autopilot/altitude"
-#define sMP_HEADING_MAG                "sim/cockpit/autopilot/heading_mag"
+//#define sMP_ALTITUDE_DIAL_FT_DR            "sim/cockpit2/autopilot/altitude_dial_ft"
+//#define sMP_AIRSPEED_DIAL_KTS_MACH_DR      "sim/cockpit2/autopilot/airspeed_dial_kts_mach"
+//#define sMP_VERTICAL_VELOCITY_DR           "sim/cockpit/autopilot/vertical_velocity"
+#define sMP_HEADING_MAG_DR                 "sim/cockpit/autopilot/heading_mag"
 
 
-#define sMP_HEADING_STATUS             "sim/cockpit2/autopilot/heading_status"
-#define sMP_NAV_STATUS                 "sim/cockpit2/autopilot/nav_status"
-#define sMP_SPEED_STATUS               "sim/cockpit2/autopilot/speed_status"
-#define sMP_ALTITUDE_HOLD_STATUS       "sim/cockpit2/autopilot/altitude_hold_status"
-#define sMP_VVI_STATUS                 "sim/cockpit2/autopilot/vvi_status"
-#define sMP_APPROACH_STATUS            "sim/cockpit2/autopilot/approach_status"
-#define sMP_BACKCOURSE_STATUS          "sim/cockpit2/autopilot/backcourse_status"
+#define sMP_HEADING_STATUS_DR              "sim/cockpit2/autopilot/heading_status"
+#define sMP_NAV_STATUS_DR                  "sim/cockpit2/autopilot/nav_status"
+#define sMP_SPEED_STATUS_DR                "sim/cockpit2/autopilot/speed_status"
+#define sMP_ALTITUDE_HOLD_STATUS_DR        "sim/cockpit2/autopilot/altitude_hold_status"
+#define sMP_VVI_STATUS_DR                  "sim/cockpit2/autopilot/vvi_status"
+#define sMP_APPROACH_STATUS_DR             "sim/cockpit2/autopilot/approach_status"
+#define sMP_BACKCOURSE_STATUS_DR           "sim/cockpit2/autopilot/backcourse_status"
 
 
 /* SWITCH PANEL */
@@ -464,8 +467,8 @@ XPluginStart(char* outName, char* outSig, char* outDesc) {
     strcpy(outSig , "jdp.panels.saitek");
     strcpy(outDesc, "Saitek Pro Panels Plugin.");
 
-    gAvPwrOnDataRef = XPLMFindDataRef(sAVIONICS_POWER_ON);
-    gBatPwrOnDataRef = XPLMFindDataRef(sBATTERY_ON);
+    gAvPwrOnDataRef = XPLMFindDataRef(sAVIONICS_POWER_ON_DR);
+    gBatPwrOnDataRef = XPLMFindDataRef(sBATTERY_ON_DR);
 
     // A questionable way to use the (evil) preprocessor
     // but it makes it easier to work on this file.
@@ -553,6 +556,12 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
     float f = 0.0;
     uint32_t* m = NULL;
     int status = MP_CMD_PASS_EVENT;
+
+//------
+// #ifndef NDEBUG
+static char tmp[100];
+// #endif
+//------
 
     switch (reinterpret_cast<uint32_t>(inRefcon)) {
     case MP_CMD_FLAPS_UP:
@@ -657,7 +666,10 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
             m = new uint32_t[MP_MPM_CNT];
             m[0] = MP_MPM;
             m[1] = MP_ALT_VAL;
-            m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpAltHoldFtDataRef));
+            m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpAltDataRef));
+//            m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpAltHoldFtDataRef));
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_ALT - %d \n", m[2]);
+LPRINTF(tmp);
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -672,6 +684,8 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
             m[1] = (f < 0) ? MP_VS_VAL_NEG : MP_VS_VAL_POS;
             m[0] = MP_MPM;
             m[2] = static_cast<uint32_t>(fabs(f));
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_VS - %d \n", m[2]);
+LPRINTF(tmp);
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -685,6 +699,8 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
             m[0] = MP_MPM;
             m[1] = MP_IAS_VAL;
             m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpArspdDataRef));
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_IAS - %d \n", m[2]);
+LPRINTF(tmp);
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -698,6 +714,8 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
             m[0] = MP_MPM;
             m[1] = MP_HDG_VAL;
             m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpHdgMagDataRef));
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_HDG - %d \n", m[2]);
+LPRINTF(tmp);
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -711,6 +729,8 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
             m[0] = MP_MPM;
             m[1] = MP_CRS_VAL;
             m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpHsiObsDegMagPltDataRef));
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_CRS - %d \n", m[2]);
+LPRINTF(tmp);
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -721,8 +741,10 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
 //            pdecrement(&gMpBtn_Alt_TogglePending);
 //        } else {
             m = new uint32_t;
-            x = (uint32_t)XPLMGetDatai(gMpAltHoldStatDataRef);
+            x = (uint32_t)XPLMGetDatai(gMpAltHoldStatBtnDataRef);
             *m = (x == 0) ? MP_BTN_ALT_OFF : ((x == 2) ? MP_BTN_ALT_CAPT : MP_BTN_ALT_ARMED);
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_ALT_HOLD_BTN - %d \n", x);
+LPRINTF(tmp);
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -743,8 +765,10 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
 //            pdecrement(&gMpBtn_Apr_TogglePending);
 //        } else {
             m = new uint32_t;
-            x = (uint32_t)XPLMGetDatai(gMpApprchStatDataRef);
+            x = (uint32_t)XPLMGetDatai(gMpApprchStatBtnDataRef);
             *m = (x == 0) ? MP_BTN_APR_OFF : ((x == 2) ? MP_BTN_APR_CAPT : MP_BTN_APR_ARMED);
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_APR_BTN - %d \n", x);
+LPRINTF(tmp);
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -754,8 +778,10 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
 //            pdecrement(&gMpBtn_Rev_TogglePending);
 //        } else {
             m = new uint32_t;
-            x = (uint32_t)XPLMGetDatai(gMpBckCrsStatDataRef);
+            x = (uint32_t)XPLMGetDatai(gMpBckCrsStatBtnDataRef);
             *m = (x == 0) ? MP_BTN_REV_OFF : ((x == 2) ? MP_BTN_REV_CAPT : MP_BTN_REV_ARMED);
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_REV_BTN - %d \n", x);
+LPRINTF(tmp);
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -765,8 +791,10 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
 //            pdecrement(&gMpBtn_Hdg_TogglePending);
 //        } else {
             m = new uint32_t;
-            x = (uint32_t)XPLMGetDatai(gMpHdgStatDataRef);
+            x = (uint32_t)XPLMGetDatai(gMpHdgStatBtnDataRef);
             *m = (x == 0) ? MP_BTN_HDG_OFF : ((x == 2) ? MP_BTN_HDG_CAPT : MP_BTN_HDG_ARMED);
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_HDG_BTN - %d \n", x);
+LPRINTF(tmp);
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -776,8 +804,10 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
 //            pdecrement(&gMpBtn_Nav_TogglePending);
 //        } else {
             m = new uint32_t;
-            x = (uint32_t)XPLMGetDatai(gMpNavStatDataRef);
+            x = (uint32_t)XPLMGetDatai(gMpNavStatBtnDataRef);
             *m = (x == 0) ? MP_BTN_NAV_OFF : ((x == 2) ? MP_BTN_NAV_CAPT : MP_BTN_NAV_ARMED);
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_NAV_BTN - %d \n", x);
+LPRINTF(tmp);
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -787,8 +817,10 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
 //            pdecrement(&gMpBtn_Ias_TogglePending);
 //        } else {
             m = new uint32_t;
-            x = (uint32_t)XPLMGetDatai(gMpSpdStatDataRef);
+            x = (uint32_t)XPLMGetDatai(gMpSpdStatBtnDataRef);
             *m = (x == 0) ? MP_BTN_IAS_OFF : ((x == 2) ? MP_BTN_IAS_CAPT : MP_BTN_IAS_ARMED);
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_IAS_BTN - %d \n", x);
+LPRINTF(tmp);
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -798,8 +830,10 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
 //            pdecrement(&gMpBtn_Vs_TogglePending);
 //        } else {
             m = new uint32_t;
-            x = (uint32_t)XPLMGetDatai(gMpVviStatDataRef);
+            x = (uint32_t)XPLMGetDatai(gMpVviStatBtnDataRef);
             *m = (x == 0) ? MP_BTN_VS_OFF : ((x == 2) ? MP_BTN_VS_CAPT : MP_BTN_VS_ARMED);
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_VS_BTN - %d \n", x);
+LPRINTF(tmp);
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -1474,7 +1508,8 @@ void mp_do_init() {
     m = new uint32_t[MP_MPM_CNT];
     m[0] = MP_MPM;
     m[1] = MP_ALT_VAL;
-    m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpAltHoldFtDataRef));
+    m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpAltDataRef));
+//    m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpAltHoldFtDataRef));
     gMp_ojq.post(new myjob(m));
     // VS val init
     m = new uint32_t[MP_MPM_CNT];
@@ -1506,42 +1541,43 @@ void mp_do_init() {
     x = new uint32_t;
     t = XPLMGetDatai(gMpFlghtDirModeDataRef);
     *x = (t == 0) ? MP_BTN_AP_OFF : ((t == 2) ? MP_BTN_AP_ON : MP_BTN_AP_ARMED);
+// XXX: fixme
 //    t = XPLMGetDatai(gMpApOnDataRef);
 //    *x = (t == 0) ? MP_BTN_AP_OFF : MP_BTN_AP_ON;
     gMp_ojq.post(new myjob(x));
     // ALT button
     x = new uint32_t;
-    t = XPLMGetDatai(gMpAltHoldStatDataRef);
+    t = XPLMGetDatai(gMpAltHoldStatBtnDataRef);
     *x = (t == 0) ? MP_BTN_ALT_OFF : ((t == 2) ? MP_BTN_ALT_CAPT : MP_BTN_ALT_ARMED);
     gMp_ojq.post(new myjob(x));
     // APR button
     x = new uint32_t;
-    t = XPLMGetDatai(gMpApprchStatDataRef);
+    t = XPLMGetDatai(gMpApprchStatBtnDataRef);
     *x = (t == 0) ? MP_BTN_APR_OFF : ((t == 2) ? MP_BTN_APR_CAPT : MP_BTN_APR_ARMED);
     gMp_ojq.post(new myjob(x));
     // REV button
     x = new uint32_t;
-    t = XPLMGetDatai(gMpBckCrsStatDataRef);
+    t = XPLMGetDatai(gMpBckCrsStatBtnDataRef);
     *x = (t == 0) ? MP_BTN_REV_OFF : ((t == 2) ? MP_BTN_REV_CAPT : MP_BTN_REV_ARMED);
     gMp_ojq.post(new myjob(x));
     // HDG button
     x = new uint32_t;
-    t = XPLMGetDatai(gMpHdgStatDataRef);
+    t = XPLMGetDatai(gMpHdgStatBtnDataRef);
     *x = (t == 0) ? MP_BTN_HDG_OFF : ((t == 2) ? MP_BTN_HDG_CAPT : MP_BTN_HDG_ARMED);
     gMp_ojq.post(new myjob(x));
     // NAV button
     x = new uint32_t;
-    t = XPLMGetDatai(gMpNavStatDataRef);
+    t = XPLMGetDatai(gMpNavStatBtnDataRef);
     *x = (t == 0) ? MP_BTN_NAV_OFF : ((t == 2) ? MP_BTN_NAV_CAPT : MP_BTN_NAV_ARMED);
     gMp_ojq.post(new myjob(x));
     // IAS button
     x = new uint32_t;
-    t = XPLMGetDatai(gMpSpdStatDataRef);
+    t = XPLMGetDatai(gMpSpdStatBtnDataRef);
     *x = (t == 0) ? MP_BTN_IAS_OFF : ((t == 2) ? MP_BTN_IAS_CAPT : MP_BTN_IAS_ARMED);
     gMp_ojq.post(new myjob(x));
     // VS button
     x = new uint32_t;
-    t = XPLMGetDatai(gMpVviStatDataRef);
+    t = XPLMGetDatai(gMpVviStatBtnDataRef);
     *x = (t == 0) ? MP_BTN_VS_OFF : ((t == 2) ? MP_BTN_VS_CAPT : MP_BTN_VS_ARMED);
     gMp_ojq.post(new myjob(x));
 }

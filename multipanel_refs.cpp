@@ -9,80 +9,81 @@
      *  included in the build file list.
      */
 
-    /*----- MultiPanel Command Ref assignment -----*/
+    // ----- MultiPanel Command Ref assignment -----
+    // readouts
+    gMpAltDnCmdRef          = XPLMFindCommand(sMP_ALTITUDE_DOWN_CR);
+    gMpAltUpCmdRef          = XPLMFindCommand(sMP_ALTITUDE_UP_CR);
+    gMpVrtclSpdDnCmdRef     = XPLMFindCommand(sMP_VERTICAL_SPEED_DOWN_CR);
+    gMpVrtclSpdUpCmdRef     = XPLMFindCommand(sMP_VERTICAL_SPEED_UP_CR);
+    gMpAsDnCmdRef           = XPLMFindCommand(sMP_AIRSPEED_DOWN_CR);
+    gMpAsUpCmdRef           = XPLMFindCommand(sMP_AIRSPEED_UP_CR);
+    gMpHdgDnCmdRef          = XPLMFindCommand(sMP_HEADING_DOWN_CR);
+    gMpHdgUpCmdRef          = XPLMFindCommand(sMP_HEADING_UP_CR);
+    gMpObsHsiDnCmdRef       = XPLMFindCommand(sMP_OBS_HSI_DOWN_CR);
+    gMpObsHsiUpCmdRef       = XPLMFindCommand(sMP_OBS_HSI_UP_CR);
 
-    /* readouts */
-    gMpAltDnCmdRef          = XPLMFindCommand(sMP_ALTITUDE_DOWN);
-    gMpAltUpCmdRef          = XPLMFindCommand(sMP_ALTITUDE_UP);
-    gMpVrtclSpdDnCmdRef     = XPLMFindCommand(sMP_VERTICAL_SPEED_DOWN);
-    gMpVrtclSpdUpCmdRef     = XPLMFindCommand(sMP_VERTICAL_SPEED_UP);
-    gMpAsDnCmdRef           = XPLMFindCommand(sMP_AIRSPEED_DOWN);
-    gMpAsUpCmdRef           = XPLMFindCommand(sMP_AIRSPEED_UP);
-    gMpHdgDnCmdRef          = XPLMFindCommand(sMP_HEADING_DOWN);
-    gMpHdgUpCmdRef          = XPLMFindCommand(sMP_HEADING_UP);
-    gMpObsHsiDnCmdRef       = XPLMFindCommand(sMP_OBS_HSI_DOWN);
-    gMpObsHsiUpCmdRef       = XPLMFindCommand(sMP_OBS_HSI_UP);
+    // buttons
+    gMpApToggleCmdRef       = XPLMFindCommand(sMP_FDIR_SERVOS_TOGGLE_CR);
+    gMpApArmedCmdRef        = XPLMFindCommand(sMP_FLIGHT_DIR_ON_ONLY_CR);
+    gMpApOnCmdRef           = XPLMFindCommand(sMP_SERVOS_AND_FLIGHT_DIR_ON_CR);
+    gMpApOffCmdRef          = XPLMFindCommand(sMP_SERVOS_AND_FLIGHT_DIR_OFF_CR);
+    gMpHdgCmdRef            = XPLMFindCommand(sMP_HEADING_CR);
+    gMpNavArmCmdRef         = XPLMFindCommand(sMP_NAV_ARM_CR);
+    gMpLvlChngCmdRef        = XPLMFindCommand(sMP_LEVEL_CHANGE_CR);
+    gMpAltHoldCmdRef        = XPLMFindCommand(sMP_ALTITUDE_HOLD_CR);
+    gMpAltArmCmdRef         = XPLMFindCommand(sMP_ALTITUDE_ARM_CR);
+    gMpVrtclSpdCmdRef       = XPLMFindCommand(sMP_VERTICAL_SPEED_CR);
+    gMpAppCmdRef            = XPLMFindCommand(sMP_APPROACH_CR);
+    gMpBkCrsCmdRef          = XPLMFindCommand(sMP_BACK_COURSE_CR);
 
-    /* buttons */
-    gMpApToggleCmdRef       = XPLMFindCommand(sMP_FDIR_SERVOS_TOGGLE);
-    gMpApArmedCmdRef        = XPLMFindCommand(sMP_FLIGHT_DIR_ON_ONLY);
-    gMpApOnCmdRef           = XPLMFindCommand(sMP_SERVOS_AND_FLIGHT_DIR_ON);
-    gMpApOffCmdRef          = XPLMFindCommand(sMP_SERVOS_AND_FLIGHT_DIR_OFF);
-    gMpHdgCmdRef            = XPLMFindCommand(sMP_HEADING);
-    gMpNavArmCmdRef         = XPLMFindCommand(sMP_NAV_ARM);
-    gMpLvlChngCmdRef        = XPLMFindCommand(sMP_LEVEL_CHANGE);
-    gMpAltHoldCmdRef        = XPLMFindCommand(sMP_ALTITUDE_HOLD);
-    gMpAltArmCmdRef         = XPLMFindCommand(sMP_ALTITUDE_ARM);
-    gMpVrtclSpdCmdRef       = XPLMFindCommand(sMP_VERTICAL_SPEED);
-    gMpAppCmdRef            = XPLMFindCommand(sMP_APPROACH);
-    gMpBkCrsCmdRef          = XPLMFindCommand(sMP_BACK_COURSE);
+    // auto throttle switch
+    gMpAtThrrtlOnCmdRef     = XPLMFindCommand(sMP_AUTOTHROTTLE_ON_CR);
+    gMpAtThrrtlOffCmdRef    = XPLMFindCommand(sMP_AUTOTHROTTLE_OFF_CR);
+    gMpAtThrrtlTgglCmdRef   = XPLMFindCommand(sMP_AUTOTHROTTLE_TOGGLE_CR);
 
-    /* auto throttle switch */
-    gMpAtThrrtlOnCmdRef     = XPLMFindCommand(sMP_AUTOTHROTTLE_ON);
-    gMpAtThrrtlOffCmdRef    = XPLMFindCommand(sMP_AUTOTHROTTLE_OFF);
-    gMpAtThrrtlTgglCmdRef   = XPLMFindCommand(sMP_AUTOTHROTTLE_TOGGLE);
+    // flap handle
+    gMpFlpsDnCmdRef         = XPLMFindCommand(sMP_FLAPS_DOWN_CR);
+    gMpFlpsUpCmdRef         = XPLMFindCommand(sMP_FLAPS_UP_CR);
 
-    /* flap handle */
-    gMpFlpsDnCmdRef         = XPLMFindCommand(sMP_FLAPS_DOWN);
-    gMpFlpsUpCmdRef         = XPLMFindCommand(sMP_FLAPS_UP);
-
-    /* pitch trim wheel */
-    gMpPtchTrmDnCmdRef      = XPLMFindCommand(sMP_PITCH_TRIM_DOWN);
-    gMpPtchTrmUpCmdRef      = XPLMFindCommand(sMP_PITCH_TRIM_UP);
-    gMpPtchTrmTkOffCmdRef   = XPLMFindCommand(sMP_PITCH_TRIM_TAKEOFF);
+    // pitch trim wheel
+    gMpPtchTrmDnCmdRef      = XPLMFindCommand(sMP_PITCH_TRIM_DOWN_CR);
+    gMpPtchTrmUpCmdRef      = XPLMFindCommand(sMP_PITCH_TRIM_UP_CR);
+    gMpPtchTrmTkOffCmdRef   = XPLMFindCommand(sMP_PITCH_TRIM_TAKEOFF_CR);
 
     /*----- MultiPanel Data Ref assignment -----*/
     // 0: off, 1: on, 2: autopilot engaged
-    gMpFlghtDirModeDataRef   = XPLMFindDataRef(sMP_FLIGHT_DIRECTOR_MODE);
-    gMpAltHoldFtDataRef      = XPLMFindDataRef(sMP_ALTITUDE_HOLD_FT);
-    gMpVrtVelDataRef        = XPLMFindDataRef(sMP_VVI_DIAL_FPM);
-    gMpArspdDataRef          = XPLMFindDataRef(sMP_AIRSPEED);
-    gMpHdgMagDataRef         = XPLMFindDataRef(sMP_HEADING_DIAL_DEG_MAG_PILOT);
-    gMpHsiObsDegMagPltDataRef = XPLMFindDataRef(sMP_HSI_OBS_DEG_MAG_PILOT);
-//    gMpAltDialFtDataRef      = XPLMFindDataRef(sMP_ALTITUDE_DIAL_FT);
-//    gMpArspdDataRef          = XPLMFindDataRef(sMP_AIRSPEED_DIAL_KTS_MACH);
-//    gMpVrtVelDataRef          = XPLMFindDataRef(sMP_VERTICAL_VELOCITY);
-//    gMpHdgMagDataRef          = XPLMFindDataRef(sMP_HEADING_MAG);
+    gMpFlghtDirModeDataRef      = XPLMFindDataRef(sMP_FLIGHT_DIRECTOR_MODE_DR);
+
+    gMpAltDataRef               = XPLMFindDataRef(sMP_ALTITUDE_DR);
+    gMpAltHoldFtDataRef         = XPLMFindDataRef(sMP_ALTITUDE_HOLD_FT_DR);
+    gMpVrtVelDataRef            = XPLMFindDataRef(sMP_VVI_DIAL_FPM_DR);
+    gMpArspdDataRef             = XPLMFindDataRef(sMP_AIRSPEED_DR);
+    gMpHdgMagDataRef            = XPLMFindDataRef(sMP_HEADING_DIAL_DEG_MAG_PILOT_DR);
+    gMpHsiObsDegMagPltDataRef = XPLMFindDataRef(sMP_HSI_OBS_DEG_MAG_PILOT_DR);
+//    gMpAltDialFtDataRef      = XPLMFindDataRef(sMP_ALTITUDE_DIAL_FT_DR);
+//    gMpArspdDataRef          = XPLMFindDataRef(sMP_AIRSPEED_DIAL_KTS_MACH_DR);
+//    gMpVrtVelDataRef          = XPLMFindDataRef(sMP_VERTICAL_VELOCITY_DR);
+//    gMpHdgMagDataRef          = XPLMFindDataRef(sMP_HEADING_MAG_DR);
 
     // 0 = off, 1 = armed, 2 = captured
-    gMpApOnDataRef            = XPLMFindDataRef(sMP_AUTOPILOT_ON);
-    gMpAltHoldStatDataRef     = XPLMFindDataRef(sMP_ALTITUDE_HOLD_STATUS);
-    gMpApprchStatDataRef      = XPLMFindDataRef(sMP_APPROACH_STATUS);
-    gMpBckCrsStatDataRef      = XPLMFindDataRef(sMP_BACKCOURSE_STATUS);
-    gMpHdgStatDataRef         = XPLMFindDataRef(sMP_HEADING_STATUS);
-    gMpNavStatDataRef         = XPLMFindDataRef(sMP_NAV_STATUS);
-    gMpSpdStatDataRef         = XPLMFindDataRef(sMP_SPEED_STATUS);
-    gMpVviStatDataRef         = XPLMFindDataRef(sMP_VVI_STATUS);
+    gMpApOnDataRef              = XPLMFindDataRef(sMP_AUTOPILOT_ON_DR);
+    gMpAltHoldStatBtnDataRef    = XPLMFindDataRef(sMP_ALTITUDE_HOLD_STATUS_DR);
+    gMpApprchStatBtnDataRef     = XPLMFindDataRef(sMP_APPROACH_STATUS_DR);
+    gMpBckCrsStatBtnDataRef     = XPLMFindDataRef(sMP_BACKCOURSE_STATUS_DR);
+    gMpHdgStatBtnDataRef        = XPLMFindDataRef(sMP_HEADING_STATUS_DR);
+    gMpNavStatBtnDataRef        = XPLMFindDataRef(sMP_NAV_STATUS_DR);
+    gMpSpdStatBtnDataRef        = XPLMFindDataRef(sMP_SPEED_STATUS_DR);
+    gMpVviStatBtnDataRef        = XPLMFindDataRef(sMP_VVI_STATUS_DR);
 
 #if 0
     /*----- MultiPanel Command Handlers -----*/
-    cmd_ref = XPLMCreateCommand(sAVIONICS_POWER_ON, "Avionics Power On");
+    cmd_ref = XPLMCreateCommand(, "Avionics Power On");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)CMD_SYS_AVIONICS_ON);
 
     cmd_ref = XPLMCreateCommand(, "Avionics Off");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)CMD_SYS_AVIONICS_OFF);
 
-    cmd_ref = XPLMCreateCommand(sBATTERY_ON, "Battery 1 On");
+    cmd_ref = XPLMCreateCommand(, "Battery 1 On");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)CMD_ELEC_BATTERY1_ON);
 
     cmd_ref = XPLMCreateCommand(, "Battery 1 Off");
@@ -91,85 +92,85 @@
 
     //--- MultiPanel
     // auto throttle
-    cmd_ref = XPLMCreateCommand(sMP_AUTOTHROTTLE_ON, "Auto Throttle On");
+    cmd_ref = XPLMCreateCommand(sMP_AUTOTHROTTLE_ON_CR, "Auto Throttle On");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)MP_CMD_OTTO_AUTOTHROTTLE_ON);
 
-    cmd_ref = XPLMCreateCommand(sMP_AUTOTHROTTLE_OFF, "Auto Throttle Off");
+    cmd_ref = XPLMCreateCommand(sMP_AUTOTHROTTLE_OFF_CR, "Auto Throttle Off");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)MP_CMD_OTTO_AUTOTHROTTLE_OFF);
 
     // flaps
-    cmd_ref = XPLMCreateCommand(sMP_FLAPS_UP, "Flaps Up");
+    cmd_ref = XPLMCreateCommand(sMP_FLAPS_UP_CR, "Flaps Up");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)MP_CMD_FLAPS_UP);
 
-    cmd_ref = XPLMCreateCommand(sMP_FLAPS_DOWN, "Flaps Down");
+    cmd_ref = XPLMCreateCommand(sMP_FLAPS_DOWN_CR, "Flaps Down");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)MP_CMD_FLAPS_DOWN);
 
     // pitch trim
-//    cmd_ref = XPLMCreateCommand(sMP_PITCH_TRIM_UP, "Pitch Trim Up");
+//    cmd_ref = XPLMCreateCommand(sMP_PITCH_TRIM_UP_CR, "Pitch Trim Up");
 //    XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)MP_CMD_PITCHTRIM_UP);
 
-//    cmd_ref = XPLMCreateCommand(sMP_PITCH_TRIM_DOWN, "Pitch Trim Down");
+//    cmd_ref = XPLMCreateCommand(sMP_PITCH_TRIM_DOWN_CR, "Pitch Trim Down");
 //    XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)MP_CMD_PITCHTRIM_DOWN);
 
     // readouts
-    cmd_ref = XPLMCreateCommand(sMP_ALTITUDE_DOWN, "AutoPilot ALT Down");
+    cmd_ref = XPLMCreateCommand(sMP_ALTITUDE_DOWN_CR, "AutoPilot ALT Down");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_ALT_DN);
 
-    cmd_ref = XPLMCreateCommand(sMP_ALTITUDE_UP, "AutoPilot ALT Up");
+    cmd_ref = XPLMCreateCommand(sMP_ALTITUDE_UP_CR, "AutoPilot ALT Up");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_ALT_UP);
 
-    cmd_ref = XPLMCreateCommand(sMP_VERTICAL_SPEED_DOWN, "AutoPilot VS Down");
+    cmd_ref = XPLMCreateCommand(sMP_VERTICAL_SPEED_DOWN_CR, "AutoPilot VS Down");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_VS_DN);
 
-    cmd_ref = XPLMCreateCommand(sMP_VERTICAL_SPEED_UP, "AutoPilot VS Up");
+    cmd_ref = XPLMCreateCommand(sMP_VERTICAL_SPEED_UP_CR, "AutoPilot VS Up");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_VS_UP);
 
-    cmd_ref = XPLMCreateCommand(sMP_AIRSPEED_DOWN, "AutoPilot IAS Down");
+    cmd_ref = XPLMCreateCommand(sMP_AIRSPEED_DOWN_CR, "AutoPilot IAS Down");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_IAS_DN);
 
-    cmd_ref = XPLMCreateCommand(sMP_AIRSPEED_UP, "AutoPilot IAS Up");
+    cmd_ref = XPLMCreateCommand(sMP_AIRSPEED_UP_CR, "AutoPilot IAS Up");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_IAS_UP);
 
-    cmd_ref = XPLMCreateCommand(sMP_HEADING_DOWN, "AutoPilot HDG Down");
+    cmd_ref = XPLMCreateCommand(sMP_HEADING_DOWN_CR, "AutoPilot HDG Down");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_HDG_DN);
 
-    cmd_ref = XPLMCreateCommand(sMP_HEADING_UP, "AutoPilot HDG Up");
+    cmd_ref = XPLMCreateCommand(sMP_HEADING_UP_CR, "AutoPilot HDG Up");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_HDG_UP);
 
-    cmd_ref = XPLMCreateCommand(sMP_OBS_HSI_DOWN, "AutoPilot CRS Down");
+    cmd_ref = XPLMCreateCommand(sMP_OBS_HSI_DOWN_CR, "AutoPilot CRS Down");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_CRS_DN);
 
-    cmd_ref = XPLMCreateCommand(sMP_OBS_HSI_UP, "AutoPilot CRS Up");
+    cmd_ref = XPLMCreateCommand(sMP_OBS_HSI_UP_CR, "AutoPilot CRS Up");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_CRS_UP);
 
     // buttons
-    cmd_ref = XPLMCreateCommand(sMP_FLIGHT_DIR_ON_ONLY, "AutoPilot Armed");
+    cmd_ref = XPLMCreateCommand(sMP_FLIGHT_DIR_ON_ONLY_CR, "AutoPilot Armed");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_ARMED);
 
-    cmd_ref = XPLMCreateCommand(sMP_SERVOS_AND_FLIGHT_DIR_ON, "AutoPilot On");
+    cmd_ref = XPLMCreateCommand(sMP_SERVOS_AND_FLIGHT_DIR_ON_CR, "AutoPilot On");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_ON);
 
-    cmd_ref = XPLMCreateCommand(sMP_SERVOS_AND_FLIGHT_DIR_OFF, "AutoPilot Off");
+    cmd_ref = XPLMCreateCommand(sMP_SERVOS_AND_FLIGHT_DIR_OFF_CR, "AutoPilot Off");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_OFF);
 
-    cmd_ref = XPLMCreateCommand(sMP_NAV_ARM, "AutoPilot NAV");
+    cmd_ref = XPLMCreateCommand(sMP_NAV_ARM_CR, "AutoPilot NAV");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_NAV_BTN);
 
-    cmd_ref = XPLMCreateCommand(sMP_LEVEL_CHANGE, "AutoPilot IAS");
+    cmd_ref = XPLMCreateCommand(sMP_LEVEL_CHANGE_CR, "AutoPilot IAS");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_IAS_BTN);
 
-//    cmd_ref = XPLMCreateCommand(sMP_ALTITUDE_ARM, "AutoPilot ALT Arm");
+//    cmd_ref = XPLMCreateCommand(sMP_ALTITUDE_ARM_CR, "AutoPilot ALT Arm");
 //    XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_ALT_ARM_BTN);
 
-    cmd_ref = XPLMCreateCommand(sMP_ALTITUDE_HOLD, "AutoPilot ALT Hold");
+    cmd_ref = XPLMCreateCommand(sMP_ALTITUDE_HOLD_CR, "AutoPilot ALT Hold");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_ALT_HOLD_BTN);
 
-    cmd_ref = XPLMCreateCommand(sMP_VERTICAL_SPEED, "AutoPilot VS");
+    cmd_ref = XPLMCreateCommand(sMP_VERTICAL_SPEED_CR, "AutoPilot VS");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_VS_BTN);
 
-    cmd_ref = XPLMCreateCommand(sMP_APPROACH, "AutoPilot APR");
+    cmd_ref = XPLMCreateCommand(sMP_APPROACH_CR, "AutoPilot APR");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_APR_BTN);
 
-    cmd_ref = XPLMCreateCommand(sMP_BACK_COURSE, "AutoPilot REV");
+    cmd_ref = XPLMCreateCommand(sMP_BACK_COURSE_CR, "AutoPilot REV");
     XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_EPILOG, (void*)MP_CMD_OTTO_REV_BTN);
 
