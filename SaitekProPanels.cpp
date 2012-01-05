@@ -350,6 +350,18 @@ jobqueue    gSp_ijq;
 jobqueue    gSp_ojq;
 jobqueue    gSp_sjq;
 
+uint32_t gMpTuningThresh = 4;
+uint32_t gMpHdgTuneUpCnt = 0;
+uint32_t gMpHdgTuneDnCnt = 0;
+uint32_t gMpCrsTuneUpCnt = 0;
+uint32_t gMpCrsTuneDnCnt = 0;
+uint32_t gMpIasTuneUpCnt = 0;
+uint32_t gMpIasTuneDnCnt = 0;
+uint32_t gMpVsTuneUpCnt = 0;
+uint32_t gMpVsTuneDnCnt = 0;
+uint32_t gMpAltTuneUpCnt = 0;
+uint32_t gMpAltTuneDnCnt = 0;
+
 // Multi Panel command and data refs
 // command refs
 #define sMP_ALTITUDE_DOWN_CR                "sim/autopilot/altitude_down"
@@ -558,7 +570,7 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
     uint32_t* m = NULL;
     int status = MP_CMD_PASS_EVENT;
 
-#define DO_LPRINTFS 1
+#define DO_LPRINTFS 0
 #if DO_LPRINTFS
     static char tmp[100];
 #endif
@@ -640,26 +652,55 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
         gMp_ojq.post(new myjob(m));
         break;
     case MP_CMD_OTTO_ALT_UP:
+        m = new uint32_t[MP_MPM_CNT];
+        m[0] = MP_MPM;
+        m[1] = MP_ALT_VAL_MSG;
+        m[2] = (static_cast<uint32_t>(floor(XPLMGetDataf(gMpAltDataRef)))) & 0xFFFFFFFC;
+#if DO_LPRINTFS
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_ALT_UP 0x%X:%d:%d \n", m[0], m[1], m[2]);
+        LPRINTF(tmp);
+#endif
+        gMp_ojq.post(new myjob(m));
+        break;
     case MP_CMD_OTTO_ALT_DN:
         m = new uint32_t[MP_MPM_CNT];
         m[0] = MP_MPM;
         m[1] = MP_ALT_VAL_MSG;
-        m[2] = static_cast<uint32_t>(floor(XPLMGetDataf(gMpAltDataRef)));
+        x = static_cast<uint32_t>(ceil(XPLMGetDataf(gMpAltDataRef)));
+        if ((t = x % 100)) {
+            x = x - t + 100;
+        }
+        m[2] = x;
 #if DO_LPRINTFS
-        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_ALT 0x%X:%d:%d \n", m[0], m[1], m[2]);
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_ALT_DN 0x%X:%d:%d \n", m[0], m[1], m[2]);
         LPRINTF(tmp);
 #endif
         gMp_ojq.post(new myjob(m));
         break;
     case MP_CMD_OTTO_VS_UP:
+        m = new uint32_t[MP_MPM_CNT];
+        f = XPLMGetDataf(gMpVrtVelDataRef);
+        m[0] = MP_MPM;
+        m[1] = (f < 0) ? MP_VS_VAL_NEG_MSG : MP_VS_VAL_POS_MSG;
+        m[2] = (static_cast<uint32_t>(fabs(f))) & 0xFFFFFFFC;
+#if DO_LPRINTFS
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_VS_UP 0x%X:%d:%d \n", m[0], m[1], m[2]);
+        LPRINTF(tmp);
+#endif
+        gMp_ojq.post(new myjob(m));
+        break;
     case MP_CMD_OTTO_VS_DN:
         m = new uint32_t[MP_MPM_CNT];
         f = XPLMGetDataf(gMpVrtVelDataRef);
         m[0] = MP_MPM;
         m[1] = (f < 0) ? MP_VS_VAL_NEG_MSG : MP_VS_VAL_POS_MSG;
-        m[2] = static_cast<uint32_t>(fabs(f));
+        x = static_cast<uint32_t>(fabs(f));
+        if ((t = x % 100)) {
+            x = x - t + 100;
+        }
+        m[2] = x;
 #if DO_LPRINTFS
-        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_VS 0x%X:%d:%d \n", m[0], m[1], m[2]);
+        sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_VS_DN 0x%X:%d:%d \n", m[0], m[1], m[2]);
         LPRINTF(tmp);
 #endif
         gMp_ojq.post(new myjob(m));
@@ -1105,34 +1146,124 @@ float MultiPanelFlightLoopCallback(float   inElapsedSinceLastCall,
                     break;
                 //--- tuning
                 case MP_ALT_UP_CMD_MSG:
-                    XPLMCommandOnce(gMpAltUpCmdRef);
+                    gMpAltTuneUpCnt += 1;
+                    if (gMpAltTuneUpCnt >= gMpTuningThresh) {
+                        gMpAltTuneUpCnt = 0;
+                        XPLMCommandOnce(gMpAltUpCmdRef);
+                    }
+                    gMpAltTuneDnCnt = 0;
+                    gMpVsTuneUpCnt = gMpVsTuneDnCnt = 0;
+                    gMpIasTuneUpCnt = gMpIasTuneDnCnt = 0;
+                    gMpHdgTuneUpCnt = gMpHdgTuneDnCnt = 0;
+                    gMpCrsTuneUpCnt = gMpCrsTuneDnCnt = 0;
                     break;
                 case MP_ALT_DN_CMD_MSG:
-                    XPLMCommandOnce(gMpAltDnCmdRef);
+                    gMpAltTuneDnCnt += 1;
+                    if (gMpAltTuneDnCnt >= gMpTuningThresh) {
+                        gMpAltTuneDnCnt = 0;
+                        XPLMCommandOnce(gMpAltDnCmdRef);
+                    }
+                    gMpAltTuneUpCnt = 0;
+                    gMpVsTuneUpCnt = gMpVsTuneDnCnt = 0;
+                    gMpIasTuneUpCnt = gMpIasTuneDnCnt = 0;
+                    gMpHdgTuneUpCnt = gMpHdgTuneDnCnt = 0;
+                    gMpCrsTuneUpCnt = gMpCrsTuneDnCnt = 0;
                     break;
                 case MP_VS_UP_CMD_MSG:
-                    XPLMCommandOnce(gMpVrtclSpdUpCmdRef);
+                    gMpVsTuneUpCnt += 1;
+                    if (gMpVsTuneUpCnt >= gMpTuningThresh) {
+                        gMpVsTuneUpCnt = 0;
+                        XPLMCommandOnce(gMpVrtclSpdUpCmdRef);
+                    }
+                    gMpAltTuneUpCnt = gMpAltTuneDnCnt = 0;
+                    gMpVsTuneDnCnt = 0;
+                    gMpIasTuneUpCnt = gMpIasTuneDnCnt = 0;
+                    gMpHdgTuneUpCnt = gMpHdgTuneDnCnt = 0;
+                    gMpCrsTuneUpCnt = gMpCrsTuneDnCnt = 0;
                     break;
                 case MP_VS_DN_CMD_MSG:
-                    XPLMCommandOnce(gMpVrtclSpdDnCmdRef);
+                    gMpVsTuneDnCnt += 1;
+                    if (gMpVsTuneDnCnt >= gMpTuningThresh) {
+                        gMpVsTuneDnCnt = 0;
+                        XPLMCommandOnce(gMpVrtclSpdDnCmdRef);
+                    }
+                    gMpAltTuneUpCnt = gMpAltTuneDnCnt = 0;
+                    gMpVsTuneUpCnt = 0;
+                    gMpIasTuneUpCnt = gMpIasTuneDnCnt = 0;
+                    gMpHdgTuneUpCnt = gMpHdgTuneDnCnt = 0;
+                    gMpCrsTuneUpCnt = gMpCrsTuneDnCnt = 0;
                     break;
                 case MP_IAS_UP_CMD_MSG:
-                    XPLMCommandOnce(gMpAsUpCmdRef);
+                    gMpIasTuneUpCnt += 1;
+                    if (gMpIasTuneUpCnt >= gMpTuningThresh) {
+                        gMpIasTuneUpCnt = 0;
+                        XPLMCommandOnce(gMpAsUpCmdRef);
+                    }
+                    gMpAltTuneUpCnt = gMpAltTuneDnCnt = 0;
+                    gMpVsTuneUpCnt = gMpVsTuneDnCnt = 0;
+                    gMpIasTuneDnCnt = 0;
+                    gMpHdgTuneUpCnt = gMpHdgTuneDnCnt = 0;
+                    gMpCrsTuneUpCnt = gMpCrsTuneDnCnt = 0;
                     break;
                 case MP_IAS_DN_CMD_MSG:
-                    XPLMCommandOnce(gMpAsDnCmdRef);
+                    gMpIasTuneDnCnt += 1;
+                    if (gMpIasTuneDnCnt >= gMpTuningThresh) {
+                        gMpIasTuneDnCnt = 0;
+                        XPLMCommandOnce(gMpAsDnCmdRef);
+                    }
+                    gMpAltTuneUpCnt = gMpAltTuneDnCnt = 0;
+                    gMpVsTuneUpCnt = gMpVsTuneDnCnt = 0;
+                    gMpIasTuneUpCnt = 0;
+                    gMpHdgTuneUpCnt = gMpHdgTuneDnCnt = 0;
+                    gMpCrsTuneUpCnt = gMpCrsTuneDnCnt = 0;
                     break;
                 case MP_HDG_UP_CMD_MSG:
-                    XPLMCommandOnce(gMpHdgUpCmdRef);
+                    gMpHdgTuneUpCnt += 1;
+                    if (gMpHdgTuneUpCnt >= gMpTuningThresh) {
+                        gMpHdgTuneUpCnt = 0;
+                        XPLMCommandOnce(gMpHdgUpCmdRef);
+                    }
+                    gMpAltTuneUpCnt = gMpAltTuneDnCnt = 0;
+                    gMpVsTuneUpCnt = gMpVsTuneDnCnt = 0;
+                    gMpIasTuneUpCnt = gMpIasTuneDnCnt = 0;
+                    gMpHdgTuneDnCnt = 0;
+                    gMpCrsTuneUpCnt = gMpCrsTuneDnCnt = 0;
                     break;
                 case MP_HDG_DN_CMD_MSG:
-                    XPLMCommandOnce(gMpHdgDnCmdRef);
+                    gMpHdgTuneDnCnt += 1;
+                    if (gMpHdgTuneDnCnt >= gMpTuningThresh) {
+                        gMpHdgTuneDnCnt = 0;
+                        XPLMCommandOnce(gMpHdgDnCmdRef);
+                    }
+                    gMpAltTuneUpCnt = gMpAltTuneDnCnt = 0;
+                    gMpVsTuneUpCnt = gMpVsTuneDnCnt = 0;
+                    gMpIasTuneUpCnt = gMpIasTuneDnCnt = 0;
+                    gMpHdgTuneUpCnt = 0;
+                    gMpCrsTuneUpCnt = gMpCrsTuneDnCnt = 0;
                     break;
                 case MP_CRS_UP_CMD_MSG:
-                    XPLMCommandOnce(gMpObsHsiUpCmdRef);
+                    gMpCrsTuneUpCnt += 1;
+                    if (gMpCrsTuneUpCnt >= gMpTuningThresh) {
+                        gMpCrsTuneUpCnt = 0;
+                        XPLMCommandOnce(gMpObsHsiUpCmdRef);
+                    }
+                    gMpAltTuneUpCnt = gMpAltTuneDnCnt = 0;
+                    gMpVsTuneUpCnt = gMpVsTuneDnCnt = 0;
+                    gMpIasTuneUpCnt = gMpIasTuneDnCnt = 0;
+                    gMpHdgTuneUpCnt = gMpHdgTuneDnCnt = 0;
+                    gMpCrsTuneDnCnt = 0;
                     break;
                 case MP_CRS_DN_CMD_MSG:
-                    XPLMCommandOnce(gMpObsHsiDnCmdRef);
+                    gMpCrsTuneDnCnt += 1;
+                    if (gMpCrsTuneDnCnt >= gMpTuningThresh) {
+                        gMpCrsTuneDnCnt = 0;
+                        XPLMCommandOnce(gMpObsHsiDnCmdRef);
+                    }
+                    gMpAltTuneUpCnt = gMpAltTuneDnCnt = 0;
+                    gMpVsTuneUpCnt = gMpVsTuneDnCnt = 0;
+                    gMpIasTuneUpCnt = gMpIasTuneDnCnt = 0;
+                    gMpHdgTuneUpCnt = gMpHdgTuneDnCnt = 0;
+                    gMpCrsTuneUpCnt = 0;
                     break;
                 default:
                     // DPRINTF("Saitek ProPanels Plugin: UNKNOWN MSG -------\n");
@@ -1460,12 +1591,12 @@ void mp_do_init() {
     gMp_ojq.post(new myjob(m));
     //--- buttons
     // AP button
-    x = new uint32_t;
-    t = XPLMGetDatai(gMpFlghtDirModeDataRef);
-    *x = (t == 0) ? MP_BTN_AP_OFF_MSG : ((t == 2) ? MP_BTN_AP_ON_MSG : MP_BTN_AP_ARMED_MSG);
 // XXX: fixme
+    x = new uint32_t;
 //    t = XPLMGetDatai(gMpApOnDataRef);
-//    *x = (t == 0) ? MP_BTN_AP_OFF_MSG : MP_BTN_AP_ON_MSG;
+//    *x = (t == 0) ? MP_BTN_AP_OFF_MSG : ((t == 2) ? MP_BTN_AP_ON_MSG : MP_BTN_AP_ARMED_MSG);
+    t = XPLMGetDatai(gMpApOnDataRef);
+    *x = (t == 0) ? MP_BTN_AP_OFF_MSG : MP_BTN_AP_ON_MSG;
     gMp_ojq.post(new myjob(x));
     // ALT button
     x = new uint32_t;
@@ -1501,6 +1632,10 @@ void mp_do_init() {
     x = new uint32_t;
     t = XPLMGetDatai(gMpVviStatBtnDataRef);
     *x = (t == 0) ? MP_BTN_VS_OFF_MSG : ((t == 2) ? MP_BTN_VS_CAPT_MSG : MP_BTN_VS_ARMED_MSG);
+    gMp_ojq.post(new myjob(x));
+    // LED update
+    x = new uint32_t;
+    *x = MP_UPDATE_LEDS;
     gMp_ojq.post(new myjob(x));
 }
 
