@@ -99,17 +99,17 @@
 
     // flaps
     cmd_ref = XPLMCreateCommand(sMP_FLAPS_UP, "Flaps Up");
-    XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)MP_CMD_FLTCTL_FLAPS_UP);
+    XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)MP_CMD_FLAPS_UP);
 
     cmd_ref = XPLMCreateCommand(sMP_FLAPS_DOWN, "Flaps Down");
-    XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)MP_CMD_FLTCTL_FLAPS_DOWN);
+    XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)MP_CMD_FLAPS_DOWN);
 
     // pitch trim
-    cmd_ref = XPLMCreateCommand(sMP_PITCH_TRIM_UP, "Pitch Trim Up");
-    XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)MP_CMD_FLTCTL_PITCHTRIM_UP);
+//    cmd_ref = XPLMCreateCommand(sMP_PITCH_TRIM_UP, "Pitch Trim Up");
+//    XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)MP_CMD_PITCHTRIM_UP);
 
-    cmd_ref = XPLMCreateCommand(sMP_PITCH_TRIM_DOWN, "Pitch Trim Down");
-    XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)MP_CMD_FLTCTL_PITCHTRIM_DOWN);
+//    cmd_ref = XPLMCreateCommand(sMP_PITCH_TRIM_DOWN, "Pitch Trim Down");
+//    XPLMRegisterCommandHandler(cmd_ref, MultiPanelCommandHandler, CMD_HNDLR_PROLOG, (void*)MP_CMD_PITCHTRIM_DOWN);
 
     // readouts
     cmd_ref = XPLMCreateCommand(sMP_ALTITUDE_DOWN, "AutoPilot ALT Down");

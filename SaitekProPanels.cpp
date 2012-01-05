@@ -75,20 +75,14 @@ USING_PTYPES
 
 // Multi panel
 enum {
-    CMD_SYS_AVIONICS_ON,
-    CMD_SYS_AVIONICS_OFF,
-    CMD_ELEC_BATTERY1_ON,
-    CMD_ELEC_BATTERY1_OFF,
-
-    MP_CMD_EAT_EVENT,
-    MP_CMD_PASS_EVENT,
-    MP_CMD_OTTO_AUTOTHROTTLE_ON,
+    MP_CMD_EAT_EVENT = 0,
+    MP_CMD_PASS_EVENT = 1,
+    MP_CMD_OTTO_AUTOTHROTTLE_ON = 0,
     MP_CMD_OTTO_AUTOTHROTTLE_OFF,
-    MP_CMD_FLTCTL_FLAPS_UP,
-    MP_CMD_FLTCTL_FLAPS_DOWN,
-    MP_CMD_FLTCTL_PITCHTRIM_UP,
-    MP_CMD_FLTCTL_PITCHTRIM_DOWN,
-    MP_CMD_FLTCTL_PITCHTRIM_TAKEOFF,
+    MP_CMD_FLAPS_UP,
+    MP_CMD_FLAPS_DOWN,
+    MP_CMD_PITCHTRIM_UP,
+    MP_CMD_PITCHTRIM_DOWN,
     MP_CMD_OTTO_ON,
     MP_CMD_OTTO_OFF,
     MP_CMD_OTTO_ARMED,
@@ -111,6 +105,11 @@ enum {
     MP_CMD_OTTO_HDG_DN,
     MP_CMD_OTTO_CRS_UP,
     MP_CMD_OTTO_CRS_DN,
+
+    CMD_SYS_AVIONICS_ON,
+    CMD_SYS_AVIONICS_OFF,
+    CMD_ELEC_BATTERY1_ON,
+    CMD_ELEC_BATTERY1_OFF,
 };
 
 // Switch panel
@@ -555,13 +554,8 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
     uint32_t* m = NULL;
     int status = MP_CMD_PASS_EVENT;
 
-//----
-// gMpBtn_Ap_TogglePending
-//----
-
-// TODO: check/set item state for some events!?
     switch (reinterpret_cast<uint32_t>(inRefcon)) {
-    case MP_CMD_FLTCTL_FLAPS_UP:
+    case MP_CMD_FLAPS_UP:
         pexchange((int*)&t, gMpFlapsUpPending);
         if (t > 0) {
             pdecrement(&gMpFlapsUpPending);
@@ -570,7 +564,7 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
             status = MP_CMD_EAT_EVENT;
         }
         break;
-    case MP_CMD_FLTCTL_FLAPS_DOWN:
+    case MP_CMD_FLAPS_DOWN:
         pexchange((int*)&t, gMpFlapsDnPending);
         if (t > 0) {
             pdecrement(&gMpFlapsDnPending);
@@ -579,24 +573,24 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
             status = MP_CMD_EAT_EVENT;
         }
         break;
-    case MP_CMD_FLTCTL_PITCHTRIM_UP:
-        pexchange((int*)&t, gMpPitchTrimUpPending);
-        if (t > 0) {
-            pdecrement(&gMpPitchTrimUpPending);
-            status = MP_CMD_PASS_EVENT;
-        } else {
-            status = MP_CMD_EAT_EVENT;
-        }
-        break;
-    case MP_CMD_FLTCTL_PITCHTRIM_DOWN:
-        pexchange((int*)&t, gMpPitchTrimDnPending);
-        if (t > 0) {
-            pdecrement(&gMpPitchTrimDnPending);
-            status = MP_CMD_PASS_EVENT;
-        } else {
-            status = MP_CMD_EAT_EVENT;
-        }
-        break;
+//    case MP_CMD_PITCHTRIM_UP:
+//        pexchange((int*)&t, gMpPitchTrimUpPending);
+//        if (t > 0) {
+//            pdecrement(&gMpPitchTrimUpPending);
+//            status = MP_CMD_PASS_EVENT;
+//        } else {
+//            status = MP_CMD_EAT_EVENT;
+//        }
+//        break;
+//    case MP_CMD_PITCHTRIM_DOWN:
+//        pexchange((int*)&t, gMpPitchTrimDnPending);
+//        if (t > 0) {
+//            pdecrement(&gMpPitchTrimDnPending);
+//            status = MP_CMD_PASS_EVENT;
+//        } else {
+//            status = MP_CMD_EAT_EVENT;
+//        }
+//        break;
     case MP_CMD_OTTO_AUTOTHROTTLE_ON:
         pexchange((int*)&t, gMpAutothrottle_onPending);
         if (t > 0) {
@@ -843,7 +837,6 @@ int SwitchPanelCommandHandler(XPLMCommandRef   inCommand,
     int status = MP_CMD_PASS_EVENT;
     LPRINTF("Saitek ProPanels Plugin: switch panel lights landing on\n");
 
-
     switch (reinterpret_cast<uint32_t>(inRefcon)) {
     case CMD_MAGNETOS_OFF:
         m = new uint32_t;
@@ -1076,22 +1069,19 @@ float MultiPanelFlightLoopCallback(float   inElapsedSinceLastCall,
 
     while (msg_cnt--) {
         message* msg = gMp_ijq.getmessage(MSG_NOWAIT);
-        if (!msg) {
-            break;
-        } else {
+        if (msg) {
             //sprintf(tmp, "Saitek ProPanels Plugin: msg received  0x%0.8X \n", *(uint32_t*)((myjob*) msg)->buf);
             //LPRINTF(tmp);
             if (gAvPwrOn && gBat1On) {
                 x = *((myjob*)msg)->buf;
-
                 switch (x) {
                 //--- pitch
                 case MP_PITCHTRIM_UP:
-                    pincrement(&gMpPitchTrimUpPending);
+//                    pincrement(&gMpPitchTrimUpPending);
                     XPLMCommandOnce(gMpPtchTrmUpCmdRef);
                     break;
                 case MP_PITCHTRIM_DN:
-                    pincrement(&gMpPitchTrimDnPending);
+//                    pincrement(&gMpPitchTrimDnPending);
                     XPLMCommandOnce(gMpPtchTrmDnCmdRef);
                     break;
                 //--- flaps
@@ -1193,8 +1183,8 @@ float MultiPanelFlightLoopCallback(float   inElapsedSinceLastCall,
                     break;
                 } // switch (x)
             } // if (gAvPwrOn && gBat1On)
-            delete msg;
         } // if (msg)
+        delete msg;
     } // while
 
 // sprintf(tmp, "Saitek ProPanels Plugin: msg received - 0x%0.8X \n", *(uint32_t*)((myjob*) msg)->buf);
@@ -1229,10 +1219,7 @@ float SwitchPanelFlightLoopCallback(float   inElapsedSinceLastCall,
 
     while (msg_cnt--) {
         message* msg = gSp_ijq.getmessage(MSG_NOWAIT);
-
-        if (!msg) {
-            break;
-        } else {
+        if (msg) {
             x = *((myjob*)msg)->buf;
 
             switch (x) {
@@ -1339,7 +1326,6 @@ float SwitchPanelFlightLoopCallback(float   inElapsedSinceLastCall,
                 break;
             }
         } // if (msg)
-
         delete msg;
     } // while
 

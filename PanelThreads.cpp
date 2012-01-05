@@ -927,7 +927,7 @@ void ToPanelThread::mp_processing(uint32_t msg, uint32_t u32data) {
                 }
                 break;
             case MP_KNOB_VS_POS:
-                if (mKnobPos != 1) {
+                if (mKnobPos != 2) {
                     mKnobPos = 2;
                     tmp1 = dec2bcd(mModeVals.vs, 4) | 0xAAAA0000;
                     tmp2 = dec2bcd(mModeVals.alt, 5)| 0xAAA00000;
@@ -937,7 +937,7 @@ void ToPanelThread::mp_processing(uint32_t msg, uint32_t u32data) {
                 }
                 break;
             case MP_KNOB_IAS_POS:
-                if (mKnobPos != 2) {
+                if (mKnobPos != 3) {
                     mKnobPos = 3;
                     tmp1 = dec2bcd(mModeVals.ias, 4) | 0xAAAA0000;
                     mp_led_update(tmp1, tmp2, 0x0A, mReport);
@@ -946,7 +946,7 @@ void ToPanelThread::mp_processing(uint32_t msg, uint32_t u32data) {
                 }
                 break;
             case MP_KNOB_HDG_POS:
-                if (mKnobPos != 3) {
+                if (mKnobPos != 4) {
                     mKnobPos = 4;
                     tmp1 = dec2bcd((uint32_t)mModeVals.hdg, 3) | 0xAAAAA000;
                     mp_led_update(tmp1, tmp2, 0x0A, mReport);

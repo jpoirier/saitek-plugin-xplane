@@ -76,8 +76,8 @@
 #endif
 
 // CommandHandler pre-event and post-event designators
-#define CMD_HNDLR_PROLOG (true)
-#define CMD_HNDLR_EPILOG (false)
+#define CMD_HNDLR_PROLOG (1)
+#define CMD_HNDLR_EPILOG (0)
 
 #define IN_BUF_CNT  (4)
 #define OUT_BUF_CNT (13)
