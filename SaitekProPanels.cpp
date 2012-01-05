@@ -535,7 +535,7 @@ XPluginStart(char* outName, char* outSig, char* outDesc) {
     LPRINTF("Saitek ProPanels Plugin: startup completed\n");
 
     uint32_t* x = new uint32_t;
-    *x = MP_BLANK_SCRN;
+    *x = MP_BLANK_SCRN_MSG;
     gMp_ojq.post(new myjob(x));
 
     mp_do_init();
@@ -557,11 +557,10 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
     uint32_t* m = NULL;
     int status = MP_CMD_PASS_EVENT;
 
-//------
-// #ifndef NDEBUG
+#define DO_LPRINTFS 1
+#if DO_LPRINTFS
 static char tmp[100];
-// #endif
-//------
+#endif
 
     switch (reinterpret_cast<uint32_t>(inRefcon)) {
     case MP_CMD_FLAPS_UP:
@@ -621,40 +620,40 @@ static char tmp[100];
     case CMD_SYS_AVIONICS_ON:
         pexchange((int*)&gAvPwrOn, true);
         m = new uint32_t;
-        *m = AVIONICS_ON;
+        *m = AVIONICS_ON_MSG;
         gMp_ojq.post(new myjob(m));
         break;
     case CMD_SYS_AVIONICS_OFF:
         pexchange((int*)&gAvPwrOn, false);
         m = new uint32_t;
-        *m = AVIONICS_OFF;
+        *m = AVIONICS_OFF_MSG;
         gMp_ojq.post(new myjob(m));
         break;
     case CMD_ELEC_BATTERY1_ON:
         pexchange((int*)&gBat1On, true);
         m = new uint32_t;
-        *m = BAT1_ON;
+        *m = BAT1_ON_MSG;
         gMp_ojq.post(new myjob(m));
         break;
     case CMD_ELEC_BATTERY1_OFF:
         pexchange((int*)&gBat1On, false);
         m = new uint32_t;
-        *m = BAT1_OFF;
+        *m = BAT1_OFF_MSG;
         gMp_ojq.post(new myjob(m));
         break;
     case MP_CMD_OTTO_ON:
         m = new uint32_t;
-        *m = MP_BTN_AP_ON;
+        *m = MP_BTN_AP_ON_MSG;
         gMp_ojq.post(new myjob(m));
         break;
     case MP_CMD_OTTO_OFF:
         m = new uint32_t;
-        *m = MP_BTN_AP_OFF;
+        *m = MP_BTN_AP_OFF_MSG;
         gMp_ojq.post(new myjob(m));
         break;
     case MP_CMD_OTTO_ARMED:
         m = new uint32_t;
-        *m = MP_BTN_AP_ARMED;
+        *m = MP_BTN_AP_ARMED_MSG;
         gMp_ojq.post(new myjob(m));
         break;
     case MP_CMD_OTTO_ALT_UP:
@@ -665,11 +664,12 @@ static char tmp[100];
 //        } else {
             m = new uint32_t[MP_MPM_CNT];
             m[0] = MP_MPM;
-            m[1] = MP_ALT_VAL;
+            m[1] = MP_ALT_VAL_MSG;
             m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpAltDataRef));
-//            m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpAltHoldFtDataRef));
-sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_ALT - %d \n", m[2]);
+#if DO_LPRINTFS
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_ALT - 0x%X:%d:%d \n", m[0], m[1], m[2]);
 LPRINTF(tmp);
+#endif
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -681,11 +681,13 @@ LPRINTF(tmp);
 //        } else {
             m = new uint32_t[MP_MPM_CNT];
             f = XPLMGetDataf(gMpVrtVelDataRef);
-            m[1] = (f < 0) ? MP_VS_VAL_NEG : MP_VS_VAL_POS;
             m[0] = MP_MPM;
+            m[1] = (f < 0) ? MP_VS_VAL_NEG_MSG : MP_VS_VAL_POS_MSG;
             m[2] = static_cast<uint32_t>(fabs(f));
-sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_VS - %d \n", m[2]);
+#if DO_LPRINTFS
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_VS - 0x%X:%d:%d \n", m[0], m[1], m[2]);
 LPRINTF(tmp);
+#endif
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -697,10 +699,12 @@ LPRINTF(tmp);
 //        } else {
             m = new uint32_t[MP_MPM_CNT];
             m[0] = MP_MPM;
-            m[1] = MP_IAS_VAL;
+            m[1] = MP_IAS_VAL_MSG;
             m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpArspdDataRef));
-sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_IAS - %d \n", m[2]);
+#if DO_LPRINTFS
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_IAS - 0x%X:%d:%d \n", m[0], m[1], m[2]);
 LPRINTF(tmp);
+#endif
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -712,10 +716,12 @@ LPRINTF(tmp);
 //        } else {
             m = new uint32_t[MP_MPM_CNT];
             m[0] = MP_MPM;
-            m[1] = MP_HDG_VAL;
+            m[1] = MP_HDG_VAL_MSG;
             m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpHdgMagDataRef));
-sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_HDG - %d \n", m[2]);
+#if DO_LPRINTFS
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_HDG - 0x%X:%d:%d \n", m[0], m[1], m[2]);
 LPRINTF(tmp);
+#endif
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -727,10 +733,12 @@ LPRINTF(tmp);
 //        } else {
             m = new uint32_t[MP_MPM_CNT];
             m[0] = MP_MPM;
-            m[1] = MP_CRS_VAL;
+            m[1] = MP_CRS_VAL_MSG;
             m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpHsiObsDegMagPltDataRef));
-sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_CRS - %d \n", m[2]);
+#if DO_LPRINTFS
+sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_CRS - 0x%X:%d:%d \n", m[0], m[1], m[2]);
 LPRINTF(tmp);
+#endif
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -742,9 +750,11 @@ LPRINTF(tmp);
 //        } else {
             m = new uint32_t;
             x = (uint32_t)XPLMGetDatai(gMpAltHoldStatBtnDataRef);
-            *m = (x == 0) ? MP_BTN_ALT_OFF : ((x == 2) ? MP_BTN_ALT_CAPT : MP_BTN_ALT_ARMED);
+            *m = (x == 0) ? MP_BTN_ALT_OFF_MSG : ((x == 2) ? MP_BTN_ALT_CAPT_MSG : MP_BTN_ALT_ARMED_MSG);
+#if DO_LPRINTFS
 sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_ALT_HOLD_BTN - %d \n", x);
 LPRINTF(tmp);
+#endif
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -755,7 +765,7 @@ LPRINTF(tmp);
 //        } else {
 //            m = new uint32_t;
 //            x = (uint32_t)XPLMGetDatai(gMpAltArmStatDataRef);
-//            *m = (x == 0) ? MP_BTN_ALT_OFF : ((x == 2) ? MP_BTN_ALT_CAPT : MP_BTN_ALT_ARMED);
+//            *m = (x == 0) ? MP_BTN_ALT_OFF_MSG : ((x == 2) ? MP_BTN_ALT_CAPT_MSG : MP_BTN_ALT_ARMED_MSG);
 //            gMp_ojq.post(new myjob(m));
 //        }
 //        break;
@@ -766,9 +776,11 @@ LPRINTF(tmp);
 //        } else {
             m = new uint32_t;
             x = (uint32_t)XPLMGetDatai(gMpApprchStatBtnDataRef);
-            *m = (x == 0) ? MP_BTN_APR_OFF : ((x == 2) ? MP_BTN_APR_CAPT : MP_BTN_APR_ARMED);
+            *m = (x == 0) ? MP_BTN_APR_OFF_MSG : ((x == 2) ? MP_BTN_APR_CAPT_MSG : MP_BTN_APR_ARMED_MSG);
+#if DO_LPRINTFS
 sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_APR_BTN - %d \n", x);
 LPRINTF(tmp);
+#endif
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -779,9 +791,11 @@ LPRINTF(tmp);
 //        } else {
             m = new uint32_t;
             x = (uint32_t)XPLMGetDatai(gMpBckCrsStatBtnDataRef);
-            *m = (x == 0) ? MP_BTN_REV_OFF : ((x == 2) ? MP_BTN_REV_CAPT : MP_BTN_REV_ARMED);
+            *m = (x == 0) ? MP_BTN_REV_OFF_MSG : ((x == 2) ? MP_BTN_REV_CAPT_MSG : MP_BTN_REV_ARMED_MSG);
+#if DO_LPRINTFS
 sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_REV_BTN - %d \n", x);
 LPRINTF(tmp);
+#endif
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -792,9 +806,11 @@ LPRINTF(tmp);
 //        } else {
             m = new uint32_t;
             x = (uint32_t)XPLMGetDatai(gMpHdgStatBtnDataRef);
-            *m = (x == 0) ? MP_BTN_HDG_OFF : ((x == 2) ? MP_BTN_HDG_CAPT : MP_BTN_HDG_ARMED);
+            *m = (x == 0) ? MP_BTN_HDG_OFF_MSG : ((x == 2) ? MP_BTN_HDG_CAPT_MSG : MP_BTN_HDG_ARMED_MSG);
+#if DO_LPRINTFS
 sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_HDG_BTN - %d \n", x);
 LPRINTF(tmp);
+#endif
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -805,9 +821,11 @@ LPRINTF(tmp);
 //        } else {
             m = new uint32_t;
             x = (uint32_t)XPLMGetDatai(gMpNavStatBtnDataRef);
-            *m = (x == 0) ? MP_BTN_NAV_OFF : ((x == 2) ? MP_BTN_NAV_CAPT : MP_BTN_NAV_ARMED);
+            *m = (x == 0) ? MP_BTN_NAV_OFF_MSG : ((x == 2) ? MP_BTN_NAV_CAPT_MSG : MP_BTN_NAV_ARMED_MSG);
+#if DO_LPRINTFS
 sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_NAV_BTN - %d \n", x);
 LPRINTF(tmp);
+#endif
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -818,7 +836,7 @@ LPRINTF(tmp);
 //        } else {
             m = new uint32_t;
             x = (uint32_t)XPLMGetDatai(gMpSpdStatBtnDataRef);
-            *m = (x == 0) ? MP_BTN_IAS_OFF : ((x == 2) ? MP_BTN_IAS_CAPT : MP_BTN_IAS_ARMED);
+            *m = (x == 0) ? MP_BTN_IAS_OFF_MSG : ((x == 2) ? MP_BTN_IAS_CAPT_MSG : MP_BTN_IAS_ARMED_MSG);
 sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_IAS_BTN - %d \n", x);
 LPRINTF(tmp);
             gMp_ojq.post(new myjob(m));
@@ -831,9 +849,11 @@ LPRINTF(tmp);
 //        } else {
             m = new uint32_t;
             x = (uint32_t)XPLMGetDatai(gMpVviStatBtnDataRef);
-            *m = (x == 0) ? MP_BTN_VS_OFF : ((x == 2) ? MP_BTN_VS_CAPT : MP_BTN_VS_ARMED);
+            *m = (x == 0) ? MP_BTN_VS_OFF_MSG : ((x == 2) ? MP_BTN_VS_CAPT_MSG : MP_BTN_VS_ARMED_MSG);
+#if DO_LPRINTFS
 sprintf(tmp, "Saitek ProPanels Plugin: MP_CMD_OTTO_VS_BTN - %d \n", x);
 LPRINTF(tmp);
+#endif
             gMp_ojq.post(new myjob(m));
 //        }
         break;
@@ -1103,111 +1123,113 @@ float MultiPanelFlightLoopCallback(float   inElapsedSinceLastCall,
 
     while (msg_cnt--) {
         message* msg = gMp_ijq.getmessage(MSG_NOWAIT);
-        if (msg) {
+        if (!msg) {
+            break;
+        } else {
             //sprintf(tmp, "Saitek ProPanels Plugin: msg received  0x%0.8X \n", *(uint32_t*)((myjob*) msg)->buf);
             //LPRINTF(tmp);
             if (gAvPwrOn && gBat1On) {
                 x = *((myjob*)msg)->buf;
                 switch (x) {
                 //--- pitch
-                case MP_PITCHTRIM_UP:
+                case MP_PITCHTRIM_UP_CMD_MSG:
 //                    pincrement(&gMpPitchTrimUpPending);
                     XPLMCommandOnce(gMpPtchTrmUpCmdRef);
                     break;
-                case MP_PITCHTRIM_DN:
+                case MP_PITCHTRIM_DN_CMD_MSG:
 //                    pincrement(&gMpPitchTrimDnPending);
                     XPLMCommandOnce(gMpPtchTrmDnCmdRef);
                     break;
                 //--- flaps
-                case MP_FLAPS_UP:
+                case MP_FLAPS_UP_CMD_MSG:
                     pincrement(&gMpFlapsUpPending);
                     XPLMCommandOnce(gMpFlpsUpCmdRef);
                     break;
-                case MP_FLAPS_DN:
+                case MP_FLAPS_DN_CMD_MSG:
                     pincrement(&gMpFlapsDnPending);
                     XPLMCommandOnce(gMpFlpsDnCmdRef);
                     break;
                 //--- autothrottle
-                case MP_AUTOTHROTTLE_OFF:
-                    pincrement(&gMpAutothrottle_offPending);
-                    XPLMCommandOnce(gMpAtThrrtlOffCmdRef);
-                    break;
-                case MP_AUTOTHROTTLE_ON:
+                case MP_AUTOTHROTTLE_ON_CMD_MSG:
                     pincrement(&gMpAutothrottle_onPending);
                     XPLMCommandOnce(gMpAtThrrtlOnCmdRef);
                     break;
+                case MP_AUTOTHROTTLE_OFF_CMD_MSG:
+                    pincrement(&gMpAutothrottle_offPending);
+                    XPLMCommandOnce(gMpAtThrrtlOffCmdRef);
+                    break;
                 //-- buttons
-                case MP_BTN_AP_TOGGLE:
+                case MP_BTN_AP_TOGGLE_CMD_MSG:
 //                    pincrement(&gMpBtn_Ap_TogglePending);
                     XPLMCommandOnce(gMpApToggleCmdRef);
                     break;
-                case MP_BTN_HDG_TOGGLE:
+                case MP_BTN_HDG_TOGGLE_CMD_MSG:
 //                    pincrement(&gMpBtn_Hdg_TogglePending);
                     XPLMCommandOnce(gMpHdgCmdRef);
                     break;
-                case MP_BTN_NAV_TOGGLE:
+                case MP_BTN_NAV_TOGGLE_CMD_MSG:
 //                    pincrement(&gMpBtn_Nav_TogglePending);
                     XPLMCommandOnce(gMpNavArmCmdRef);
                     break;
-                case MP_BTN_IAS_TOGGLE:
+                case MP_BTN_IAS_TOGGLE_CMD_MSG:
 //                    pincrement(&gMpBtn_Ias_TogglePending);
                     XPLMCommandOnce(gMpLvlChngCmdRef);
                     break;
-                case MP_BTN_ALT_TOGGLE:
+                case MP_BTN_ALT_TOGGLE_CMD_MSG:
 //                    pincrement(&gMpBtn_Alt_TogglePending);
 //                    XPLMCommandOnce(&gMpAltArmCmdRef);
                     XPLMCommandOnce(&gMpAltHoldCmdRef);
                     break;
-                case MP_BTN_VS_TOGGLE:
+                case MP_BTN_VS_TOGGLE_CMD_MSG:
 //                    pincrement(&gMpBtn_Vs_TogglePending);
                     XPLMCommandOnce(gMpVrtclSpdCmdRef);
                     break;
-                case MP_BTN_APR_TOGGLE:
+                case MP_BTN_APR_TOGGLE_CMD_MSG:
 //                    pincrement(&gMpBtn_Apr_TogglePending);
                     XPLMCommandOnce(gMpAppCmdRef);
                     break;
-                case MP_BTN_REV_TOGGLE:
+                case MP_BTN_REV_TOGGLE_CMD_MSG:
 //                    pincrement(&gMpBtn_Rev_TogglePending);
                     XPLMCommandOnce(gMpBkCrsCmdRef);
                     break;
                 //--- tuning
-                case MP_ALT_UP:
+                case MP_ALT_UP_CMD_MSG:
 //                    pincrement(&gMpAlt_Pending);
                     XPLMCommandOnce(gMpAltUpCmdRef);
                     break;
-                case MP_ALT_DN:
+                case MP_ALT_DN_CMD_MSG:
 //                    pincrement(&gMpAlt_Pending);
                     XPLMCommandOnce(gMpAltDnCmdRef);
                     break;
-                case MP_VS_UP:
+                case MP_VS_UP_CMD_MSG:
 //                    pincrement(&gMpVs_Pending);
                     XPLMCommandOnce(gMpVrtclSpdUpCmdRef);
                     break;
-                case MP_VS_DN:
+                case MP_VS_DN_CMD_MSG:
 //                    pincrement(&gMpVs_Pending);
                     XPLMCommandOnce(gMpVrtclSpdDnCmdRef);
                     break;
-                case MP_IAS_UP:
+                case MP_IAS_UP_CMD_MSG:
 //                    pincrement(&gMpIas_Pending);
                     XPLMCommandOnce(gMpAsUpCmdRef);
                     break;
-                case MP_IAS_DN:
+                case MP_IAS_DN_CMD_MSG:
 //                    pincrement(&gMpIas_Pending);
                     XPLMCommandOnce(gMpAsDnCmdRef);
                     break;
-                case MP_HDG_UP:
+                case MP_HDG_UP_CMD_MSG:
 //                    pincrement(&gMpHdg_Pending);
                     XPLMCommandOnce(gMpHdgUpCmdRef);
                     break;
-                case MP_HDG_DN:
+                case MP_HDG_DN_CMD_MSG:
 //                    pincrement(&gMpHdg_Pending);
                     XPLMCommandOnce(gMpHdgDnCmdRef);
                     break;
-                case MP_CRS_UP:
+                case MP_CRS_UP_CMD_MSG:
 //                    pincrement(&gMpCrs_Pending);
                     XPLMCommandOnce(gMpObsHsiUpCmdRef);
                     break;
-                case MP_CRS_DN:
+                case MP_CRS_DN_CMD_MSG:
 //                    pincrement(&gMpCrs_Pending);
                     XPLMCommandOnce(gMpObsHsiDnCmdRef);
                     break;
@@ -1253,7 +1275,9 @@ float SwitchPanelFlightLoopCallback(float   inElapsedSinceLastCall,
 
     while (msg_cnt--) {
         message* msg = gSp_ijq.getmessage(MSG_NOWAIT);
-        if (msg) {
+        if (!msg) {
+            break;
+        } else {
             x = *((myjob*)msg)->buf;
 
             switch (x) {
@@ -1375,7 +1399,7 @@ XPluginStop(void) {
     LPRINTF("Saitek ProPanels Plugin: XPluginStop\n");
 
 //    uint32_t* x = new uint32_t;
-//    *x = MP_BLANK_SCRN;
+//    *x = MP_BLANK_SCRN_MSG;
 //    gMp_ojq.post(new myjob(x));
 //    psleep(500);
 /*
@@ -1487,98 +1511,97 @@ void mp_do_init() {
     x = new uint32_t;
 //    if (XPLMGetDatai(gAvPwrOnDataRef)) {
         pexchange((int*)&gAvPwrOn, true);
-        *x = AVIONICS_ON;
+        *x = AVIONICS_ON_MSG;
         gMp_ojq.post(new myjob(x));
 //    } else {
 //        pexchange((int*)&gAvPwrOn, false);
-//        *x = AVIONICS_OFF;
+//        *x = AVIONICS_OFF_MSG;
 //        gMp_ojq.post(new myjob(x));
 //    }
     x = new uint32_t;
 //    if (XPLMGetDatai(gBatPwrOnDataRef)) {
         pexchange((int*)&gBat1On, true);
-        *x = BAT1_ON;
+        *x = BAT1_ON_MSG;
         gMp_ojq.post(new myjob(x));
 //    } else {
 //        pexchange((int*)&gBat1On, false);
-//        *x = BAT1_OFF;
+//        *x = BAT1_OFF_MSG;
 //        gMp_ojq.post(new myjob(x));
 //    }
     // ALT val init
     m = new uint32_t[MP_MPM_CNT];
     m[0] = MP_MPM;
-    m[1] = MP_ALT_VAL;
+    m[1] = MP_ALT_VAL_MSG;
     m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpAltDataRef));
-//    m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpAltHoldFtDataRef));
     gMp_ojq.post(new myjob(m));
     // VS val init
     m = new uint32_t[MP_MPM_CNT];
     f = XPLMGetDataf(gMpVrtVelDataRef);
-    m[1] = (f < 0) ? MP_VS_VAL_NEG : MP_VS_VAL_POS;
     m[0] = MP_MPM;
+    m[1] = (f < 0) ? MP_VS_VAL_NEG_MSG : MP_VS_VAL_POS_MSG;
     m[2] = static_cast<uint32_t>(fabs(f));
     gMp_ojq.post(new myjob(m));
     // IAS val init
     m = new uint32_t[MP_MPM_CNT];
     m[0] = MP_MPM;
-    m[1] = MP_IAS_VAL;
+    m[1] = MP_IAS_VAL_MSG;
     m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpArspdDataRef));
     gMp_ojq.post(new myjob(m));
     // HDG val init
     m = new uint32_t[MP_MPM_CNT];
     m[0] = MP_MPM;
-    m[1] = MP_HDG_VAL;
+    m[1] = MP_HDG_VAL_MSG;
     m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpHdgMagDataRef));
     gMp_ojq.post(new myjob(m));
     // CRS val init
     x = new uint32_t;
     m[0] = MP_MPM;
-    m[1] = MP_CRS_VAL;
+    m[1] = MP_CRS_VAL_MSG;
     m[2] = static_cast<uint32_t>(XPLMGetDataf(gMpHsiObsDegMagPltDataRef));
     gMp_ojq.post(new myjob(m));
     //--- buttons
     // AP button
     x = new uint32_t;
     t = XPLMGetDatai(gMpFlghtDirModeDataRef);
-    *x = (t == 0) ? MP_BTN_AP_OFF : ((t == 2) ? MP_BTN_AP_ON : MP_BTN_AP_ARMED);
+    *x = (t == 0) ? MP_BTN_AP_OFF_MSG : ((t == 2) ? MP_BTN_AP_ON_MSG : MP_BTN_AP_ARMED_MSG);
 // XXX: fixme
 //    t = XPLMGetDatai(gMpApOnDataRef);
-//    *x = (t == 0) ? MP_BTN_AP_OFF : MP_BTN_AP_ON;
+//    *x = (t == 0) ? MP_BTN_AP_OFF_MSG : MP_BTN_AP_ON_MSG;
     gMp_ojq.post(new myjob(x));
     // ALT button
     x = new uint32_t;
     t = XPLMGetDatai(gMpAltHoldStatBtnDataRef);
-    *x = (t == 0) ? MP_BTN_ALT_OFF : ((t == 2) ? MP_BTN_ALT_CAPT : MP_BTN_ALT_ARMED);
+    *x = (t == 0) ? MP_BTN_ALT_OFF_MSG : ((t == 2) ? MP_BTN_ALT_CAPT_MSG : MP_BTN_ALT_ARMED_MSG);
     gMp_ojq.post(new myjob(x));
     // APR button
     x = new uint32_t;
     t = XPLMGetDatai(gMpApprchStatBtnDataRef);
-    *x = (t == 0) ? MP_BTN_APR_OFF : ((t == 2) ? MP_BTN_APR_CAPT : MP_BTN_APR_ARMED);
+    *x = (t == 0) ? MP_BTN_APR_OFF_MSG : ((t == 2) ? MP_BTN_APR_CAPT_MSG : MP_BTN_APR_ARMED_MSG);
     gMp_ojq.post(new myjob(x));
     // REV button
     x = new uint32_t;
     t = XPLMGetDatai(gMpBckCrsStatBtnDataRef);
-    *x = (t == 0) ? MP_BTN_REV_OFF : ((t == 2) ? MP_BTN_REV_CAPT : MP_BTN_REV_ARMED);
+    *x = (t == 0) ? MP_BTN_REV_OFF_MSG : ((t == 2) ? MP_BTN_REV_CAPT_MSG : MP_BTN_REV_ARMED_MSG);
     gMp_ojq.post(new myjob(x));
     // HDG button
     x = new uint32_t;
     t = XPLMGetDatai(gMpHdgStatBtnDataRef);
-    *x = (t == 0) ? MP_BTN_HDG_OFF : ((t == 2) ? MP_BTN_HDG_CAPT : MP_BTN_HDG_ARMED);
+    *x = (t == 0) ? MP_BTN_HDG_OFF_MSG : ((t == 2) ? MP_BTN_HDG_CAPT_MSG : MP_BTN_HDG_ARMED_MSG);
     gMp_ojq.post(new myjob(x));
     // NAV button
     x = new uint32_t;
     t = XPLMGetDatai(gMpNavStatBtnDataRef);
-    *x = (t == 0) ? MP_BTN_NAV_OFF : ((t == 2) ? MP_BTN_NAV_CAPT : MP_BTN_NAV_ARMED);
+    *x = (t == 0) ? MP_BTN_NAV_OFF_MSG : ((t == 2) ? MP_BTN_NAV_CAPT_MSG : MP_BTN_NAV_ARMED_MSG);
     gMp_ojq.post(new myjob(x));
     // IAS button
     x = new uint32_t;
     t = XPLMGetDatai(gMpSpdStatBtnDataRef);
-    *x = (t == 0) ? MP_BTN_IAS_OFF : ((t == 2) ? MP_BTN_IAS_CAPT : MP_BTN_IAS_ARMED);
+    *x = (t == 0) ? MP_BTN_IAS_OFF_MSG : ((t == 2) ? MP_BTN_IAS_CAPT_MSG : MP_BTN_IAS_ARMED_MSG);
     gMp_ojq.post(new myjob(x));
     // VS button
     x = new uint32_t;
     t = XPLMGetDatai(gMpVviStatBtnDataRef);
-    *x = (t == 0) ? MP_BTN_VS_OFF : ((t == 2) ? MP_BTN_VS_CAPT : MP_BTN_VS_ARMED);
+    *x = (t == 0) ? MP_BTN_VS_OFF_MSG : ((t == 2) ? MP_BTN_VS_CAPT_MSG : MP_BTN_VS_ARMED_MSG);
     gMp_ojq.post(new myjob(x));
 }
 
@@ -1619,7 +1642,7 @@ XPluginReceiveMessage(XPLMPluginID inFrom, long inMsg, void* inParam) {
                 break;
             }
             x = new uint32_t;
-            *x = MP_PLANE_CRASH;
+            *x = MP_PLANE_CRASH_MSG;
             gMp_ojq.post(new myjob(x));
             LPRINTF("Saitek ProPanels Plugin: XPluginReceiveMessage XPLM_MSG_PLANE_CRASHED\n");
             break;
@@ -1631,21 +1654,21 @@ XPluginReceiveMessage(XPLMPluginID inFrom, long inMsg, void* inParam) {
             x = new uint32_t;
             if ((bool)XPLMGetDatai(gAvPwrOnDataRef)) {
                 pexchange((int*)&gAvPwrOn, false);
-                *x = AVIONICS_OFF;
+                *x = AVIONICS_OFF_MSG;
                 gMp_ojq.post(new myjob(x));
             } else {
                 pexchange((int*)&gAvPwrOn, true);
-                *x = AVIONICS_ON;
+                *x = AVIONICS_ON_MSG;
                 gMp_ojq.post(new myjob(x));
             }
             x = new uint32_t;
             if ((bool)XPLMGetDatai(gBatPwrOnDataRef)) {
                 pexchange((int*)&gBat1On, false);
-                *x = BAT1_OFF;
+                *x = BAT1_OFF_MSG;
                 gMp_ojq.post(new myjob(x));
             } else {
                 pexchange((int*)&gBat1On, true);
-                *x = BAT1_ON;
+                *x = BAT1_ON_MSG;
                 gMp_ojq.post(new myjob(x));
             }
             pexchange((int*)&gPlaneLoaded, false); // always last
