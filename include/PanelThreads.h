@@ -150,13 +150,6 @@ extern "C" {
     extern pt::trigger gMpTrigger;
     extern pt::trigger gSpTrigger;
 
-//    extern pt::jobqueue gRp_ijq;
-//    extern pt::jobqueue gRp_ojq;
-//    extern pt::jobqueue gMp_ijq;
-//    extern pt::jobqueue gMp_ojq;
-//    extern pt::jobqueue gSp_ijq;
-//    extern pt::jobqueue gSp_ojq;
-
     extern int volatile pc_run;
     extern int volatile threads_run;
 
@@ -166,7 +159,7 @@ extern "C" {
 
     extern const unsigned char rp_blank_panel[13];
     extern const unsigned char mp_blank_panel[13];
-    extern const unsigned char sp_blank_panel[13];
+    extern const unsigned char sp_blank_panel[2];
 
     extern void close_hid(hid_device* dev);
     extern bool init_hid(hid_device* volatile* dev, unsigned short prod_id);

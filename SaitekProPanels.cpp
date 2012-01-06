@@ -182,7 +182,7 @@ static const float FL_CB_INTERVAL = -1.0;
 XPLMDataRef gAvPwrOnDataRef = NULL;
 XPLMDataRef gBatPwrOnDataRef = NULL;
 
-/* Multi Panel Command Refs */
+// Multi Panel Command Refs
 XPLMCommandRef gAvPwrOnCmdRef = NULL;
 XPLMCommandRef gAvPwrOffCmdRef = NULL;
 XPLMCommandRef gBatPwrOnCmdRef = NULL;
@@ -424,8 +424,6 @@ uint32_t gMpAltTuneDnCnt = 0;
 #define sMP_VVI_STATUS_DR                  "sim/cockpit2/autopilot/vvi_status"
 #define sMP_APPROACH_STATUS_DR             "sim/cockpit2/autopilot/approach_status"
 #define sMP_BACKCOURSE_STATUS_DR           "sim/cockpit2/autopilot/backcourse_status"
-
-
 // SWITCH PANEL
 #define sMAGNETOS_OFF_CR               "sim/magnetos/magnetos_off"
 #define sMAGNETOS_RIGHT_CR             "sim/magnetos/magnetos_right_1"
@@ -852,8 +850,8 @@ int SwitchPanelCommandHandler(XPLMCommandRef   inCommand,
                              XPLMCommandPhase  inPhase,
                              void*             inRefcon) {
     uint32_t* m;
-//    uint32_t x;
-//    float f;
+    uint32_t x;
+    float f;
     int status = MP_CMD_PASS_EVENT;
     LPRINTF("Saitek ProPanels Plugin: switch panel lights landing on\n");
 
@@ -1042,7 +1040,7 @@ float RadioPanelFlightLoopCallback(float   inElapsedSinceLastCall,
 //     static char tmp[100];
 // #endif
 
-//    uint32_t x;
+    uint32_t x;
     int msg_cnt = gRp_MsgProc_Cnt;
 
 //    if ((gFlCbCnt % PANEL_CHECK_INTERVAL) == 0) {
@@ -1307,6 +1305,7 @@ float SwitchPanelFlightLoopCallback(float   inElapsedSinceLastCall,
 
     while (msg_cnt--) {
         message* msg = gSp_ijq.getmessage(MSG_NOWAIT);
+
         if (msg) {
             x = *((myjob*)msg)->buf;
 
