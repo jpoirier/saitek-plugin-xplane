@@ -73,6 +73,11 @@ sim/aircraft/specialcontrols/acf_ail1flaps
 
 USING_PTYPES
 
+// general & misc
+enum {
+    PLUGIN_PLANE_ID = 0
+};
+
 // Multi panel
 enum {
     MP_CMD_EAT_EVENT = 0,
@@ -491,14 +496,14 @@ XPluginStart(char* outName, char* outSig, char* outDesc) {
 
     LPRINTF("Saitek ProPanels Plugin: commands initialized\n");
 
-    if (init_hid(&gRpHandle, RP_PROD_ID)) {
-        rp_init(gRpHandle);
+    if (init_hid(&gRpHidHandle, RP_PROD_ID)) {
+        rp_init(gRpHidHandle);
     }
-    if (init_hid(&gMpHandle, MP_PROD_ID)) {
-        mp_init(gMpHandle);
+    if (init_hid(&gMpHidHandle, MP_PROD_ID)) {
+        mp_init(gMpHidHandle);
     }
-    if (init_hid(&gSpHandle, SP_PROD_ID)) {
-        sp_init(gSpHandle);
+    if (init_hid(&gSpHidHandle, SP_PROD_ID)) {
+        sp_init(gSpHidHandle);
     }
 
     pexchange((int*)&threads_run, true);
@@ -507,20 +512,20 @@ XPluginStart(char* outName, char* outSig, char* outDesc) {
     FromPanelThread*   fp;
 
     // radio panel
-    tp = new ToPanelThread(gRpHandle, &gRp_ojq, &gRpTrigger, RP_PROD_ID);
-    fp = new FromPanelThread(gRpHandle, &gRp_ijq, &gRp_ojq, &gRpTrigger, RP_PROD_ID);
+    tp = new ToPanelThread(gRpHidHandle, &gRp_ojq, &gRpTrigger, RP_PROD_ID);
+    fp = new FromPanelThread(gRpHidHandle, &gRp_ijq, &gRp_ojq, &gRpTrigger, RP_PROD_ID);
     tp->start();
     fp->start();
 
     // multi panel
-    tp = new ToPanelThread(gMpHandle, &gMp_ojq, &gMpTrigger, MP_PROD_ID);
-    fp = new FromPanelThread(gMpHandle, &gMp_ijq, &gMp_ojq, &gMpTrigger, MP_PROD_ID);
+    tp = new ToPanelThread(gMpHidHandle, &gMp_ojq, &gMpTrigger, MP_PROD_ID);
+    fp = new FromPanelThread(gMpHidHandle, &gMp_ijq, &gMp_ojq, &gMpTrigger, MP_PROD_ID);
     tp->start();
     fp->start();
 
     // switch panel
-    tp = new ToPanelThread(gSpHandle, &gSp_ojq, &gSpTrigger, SP_PROD_ID);
-    fp = new FromPanelThread(gSpHandle, &gSp_ijq, &gSp_ojq, &gSpTrigger, SP_PROD_ID);
+    tp = new ToPanelThread(gSpHidHandle, &gSp_ojq, &gSpTrigger, SP_PROD_ID);
+    fp = new FromPanelThread(gSpHidHandle, &gSp_ijq, &gSp_ojq, &gSpTrigger, SP_PROD_ID);
     tp->start();
     fp->start();
 
@@ -530,9 +535,9 @@ XPluginStart(char* outName, char* outSig, char* outDesc) {
     pc->start();
 #endif
 
-    if (gRpHandle) { LPRINTF("Saitek ProPanels Plugin: gRpHandle\n"); gRpTrigger.post(); }
-    if (gMpHandle) { LPRINTF("Saitek ProPanels Plugin: gMpHandle\n"); gMpTrigger.post(); }
-    if (gSpHandle) { LPRINTF("Saitek ProPanels Plugin: gSpHandle\n"); gSpTrigger.post(); }
+    if (gRpHidHandle) { LPRINTF("Saitek ProPanels Plugin: gRpHandle\n"); gRpTrigger.post(); }
+    if (gMpHidHandle) { LPRINTF("Saitek ProPanels Plugin: gMpHandle\n"); gMpTrigger.post(); }
+    if (gSpHidHandle) { LPRINTF("Saitek ProPanels Plugin: gSpHandle\n"); gSpTrigger.post(); }
 
     LPRINTF("Saitek ProPanels Plugin: Panel threads running\n");
 
@@ -1454,19 +1459,19 @@ XPluginStop(void) {
 
     pexchange((int*)&threads_run, false);
 
-    if (gRpHandle) {
+    if (gRpHidHandle) {
         gRpTrigger.post();
-        close_hid(gRpHandle);
+        close_hid(gRpHidHandle);
     }
 
-    if (gMpHandle) {
+    if (gMpHidHandle) {
         gMpTrigger.post();
-        close_hid(gMpHandle);
+        close_hid(gMpHidHandle);
     }
 
-    if (gSpHandle) {
+    if (gSpHidHandle) {
         gSpTrigger.post();
-        close_hid(gSpHandle);
+        close_hid(gSpHidHandle);
     }
 
     psleep(500);
@@ -1490,12 +1495,12 @@ XPluginDisable(void) {
     gSpTrigger.reset();
 
     // set any panel specific globals here
-    if (gMpHandle) {
+    if (gMpHidHandle) {
         XPLMSetDatai(gMpOttoOvrrde, false);
     }
-    if (gSpHandle) {
+    if (gSpHidHandle) {
     }
-    if (gRpHandle) {
+    if (gRpHidHandle) {
     }
 }
 
@@ -1510,12 +1515,12 @@ XPluginEnable(void) {
     pexchange((int*)&gPluginEnabled, false);
 
     // set any panel specific globals here
-    if (gMpHandle) {
+    if (gMpHidHandle) {
         XPLMSetDatai(gMpOttoOvrrde, true);
     }
-    if (gSpHandle) {
+    if (gSpHidHandle) {
     }
-    if (gRpHandle) {
+    if (gRpHidHandle) {
     }
 
     gRpTrigger.post();
@@ -1532,10 +1537,6 @@ void mp_do_init() {
     uint32_t* m;
     uint32_t* x;
 
-    if (gPlaneLoaded != 0) {
-        // not the user's plane
-        return;
-    }
     pexchange((int*)&gPlaneLoaded, true); // always first
     x = new uint32_t;
 //    if (XPLMGetDatai(gAvPwrOnDataRef)) {
@@ -1651,11 +1652,16 @@ XPluginReceiveMessage(XPLMPluginID inFrom, long inMsg, void* inParam) {
     int inparam = reinterpret_cast<int>(inParam);
         switch (inMsg) {
         case XPLM_MSG_PLANE_LOADED:
-            if (inparam != 0 || gPlaneLoaded) {
-                // not the user's plane
+            if (inparam != PLUGIN_PLANE_ID || gPlaneLoaded) {
                 break;
             }
-            mp_do_init();
+            if (gSpHidHandle) {
+            }
+            if (gRpHidHandle) {
+            }
+            if (gMpHidHandle) {
+                mp_do_init();
+            }
             LPRINTF("Saitek ProPanels Plugin: XPluginReceiveMessage XPLM_MSG_PLANE_LOADED\n");
             break;
         case XPLM_MSG_AIRPORT_LOADED:
@@ -1670,39 +1676,49 @@ XPluginReceiveMessage(XPLMPluginID inFrom, long inMsg, void* inParam) {
 // XXX: what's different between an unloaded and crashed plane
 // as far as system state and procedure?
         case XPLM_MSG_PLANE_CRASHED:
-            if ((int)inParam != 0) {
-                // not the user's plane
+            if ((int)inParam != PLUGIN_PLANE_ID) {
                 break;
             }
-            x = new uint32_t;
-            *x = MP_PLANE_CRASH_MSG;
-            gMp_ojq.post(new myjob(x));
+            if (gSpHidHandle) {
+            }
+            if (gRpHidHandle) {
+            }
+            if (gMpHidHandle) {
+                x = new uint32_t;
+                *x = MP_PLANE_CRASH_MSG;
+                gMp_ojq.post(new myjob(x));
+            }
             LPRINTF("Saitek ProPanels Plugin: XPluginReceiveMessage XPLM_MSG_PLANE_CRASHED\n");
             break;
         case XPLM_MSG_PLANE_UNLOADED:
-            if ((int)inParam != 0) {
-                // not the user's plane
+            if ((int)inParam != PLUGIN_PLANE_ID) {
                 break;
             }
-            x = new uint32_t;
-            if ((bool)XPLMGetDatai(gAvPwrOnDataRef)) {
-                pexchange((int*)&gAvPwrOn, false);
-                *x = AVIONICS_OFF_MSG;
-                gMp_ojq.post(new myjob(x));
-            } else {
-                pexchange((int*)&gAvPwrOn, true);
-                *x = AVIONICS_ON_MSG;
-                gMp_ojq.post(new myjob(x));
+            if (gSpHidHandle) {
             }
-            x = new uint32_t;
-            if ((bool)XPLMGetDatai(gBatPwrOnDataRef)) {
-                pexchange((int*)&gBat1On, false);
-                *x = BAT1_OFF_MSG;
-                gMp_ojq.post(new myjob(x));
-            } else {
-                pexchange((int*)&gBat1On, true);
-                *x = BAT1_ON_MSG;
-                gMp_ojq.post(new myjob(x));
+            if (gRpHidHandle) {
+            }
+            if (gMpHidHandle) {
+                x = new uint32_t;
+                if ((bool)XPLMGetDatai(gAvPwrOnDataRef)) {
+                    pexchange((int*)&gAvPwrOn, false);
+                    *x = AVIONICS_OFF_MSG;
+                    gMp_ojq.post(new myjob(x));
+                } else {
+                    pexchange((int*)&gAvPwrOn, true);
+                    *x = AVIONICS_ON_MSG;
+                    gMp_ojq.post(new myjob(x));
+                }
+                x = new uint32_t;
+                if ((bool)XPLMGetDatai(gBatPwrOnDataRef)) {
+                    pexchange((int*)&gBat1On, false);
+                    *x = BAT1_OFF_MSG;
+                    gMp_ojq.post(new myjob(x));
+                } else {
+                    pexchange((int*)&gBat1On, true);
+                    *x = BAT1_ON_MSG;
+                    gMp_ojq.post(new myjob(x));
+                }
             }
             pexchange((int*)&gPlaneLoaded, false); // always last
             LPRINTF("Saitek ProPanels Plugin: XPluginReceiveMessage XPLM_MSG_PLANE_UNLOADED\n");
