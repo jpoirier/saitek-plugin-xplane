@@ -29,23 +29,13 @@
 
 USING_PTYPES
 
-#define toggle_bit(c, pos) (*(c) ^= (0x01 << pos))
-#define set_bit(c, pos) (*(c) |= (0x01 << pos))
-#define clear_bit(c, pos) (*(c) &= ~(0x01 << pos))
-#define get_bit(c, pos) (*(c) &= (0x01 << pos))
+#define toggle_bit(c, pos)  (*(c) ^= (0x01 << pos))
+#define set_bit(c, pos)     (*(c) |= (0x01 << pos))
+#define clear_bit(c, pos)   (*(c) &= ~(0x01 << pos))
+#define get_bit(c, pos)     (*(c) &= (0x01 << pos))
 
-enum {
-    LED1_BYTE_START = 1, // top
-    LED1_BYTE_CNT   = 5, // bottom
-
-    LED2_BYTE_START = 6,
-    LED2_BYTE_CNT   = 5,
-
-    BTNS_BYTE_INDEX = 11,
-    BTNS_BYTE_CNT   = 1,
-
-    MINUS_SIGN      = 0x0E,
-};
+#define MP_LED_PLUS_SIGN    (0x0A)
+#define MP_LED_MINUS_SIGN   (0x0E)
 
 //static void toggle_bit(unsigned char* c, int pos);
 
@@ -77,21 +67,6 @@ trigger     gPcTrigger(true, false);
 trigger     gRpTrigger(false, false);
 trigger     gMpTrigger(false, false);
 trigger     gSpTrigger(false, false);
-
-//// Radio Panel resources
-//jobqueue    gRp_ojq;
-//jobqueue    gRp_ijq;
-//jobqueue    gRp_sjq;
-
-//// Multi Panel resources
-//jobqueue    gMp_ijq;
-//jobqueue    gMp_ojq;
-//jobqueue    gMp_sjq;
-
-//// Switch Panel resources
-//jobqueue    gSp_ijq;
-//jobqueue    gSp_ojq;
-//jobqueue    gSp_sjq;
 
 /**
  *
@@ -660,8 +635,8 @@ void ToPanelThread::execute() {
             d1 = p[0];
             d2 = 0;
 
+            // check for a multi-part message
             if (d1 == MP_MPM) {
-                // multi-part message
                 d1 = p[1];
                 d2 = p[2];
             }
@@ -947,7 +922,7 @@ void ToPanelThread::mp_processing(uint32_t msg, uint32_t u32data) {
             if (mKnobPos != 3) {
                 mKnobPos = 3;
                 tmp1 = dec2bcd(mModeVals.ias, 4) | 0xAAAA0000;
-                mp_led_update(tmp1, tmp2, 0x0A, mReport);
+                mp_led_update(tmp1, tmp2, MP_LED_PLUD_SIGN, mReport);
             } else {
                 send = false;
             }
@@ -956,7 +931,7 @@ void ToPanelThread::mp_processing(uint32_t msg, uint32_t u32data) {
             if (mKnobPos != 4) {
                 mKnobPos = 4;
                 tmp1 = dec2bcd(mModeVals.hdg, 3) | 0xAAAAA000;
-                mp_led_update(tmp1, tmp2, 0x0A, mReport);
+                mp_led_update(tmp1, tmp2, MP_LED_PLUS_SIGN, mReport);
             } else {
                 send = false;
             }
@@ -965,7 +940,7 @@ void ToPanelThread::mp_processing(uint32_t msg, uint32_t u32data) {
             if (mKnobPos != 5) {
                 mKnobPos = 5;
                 tmp1 = dec2bcd(mModeVals.crs, 3) | 0xAAAAA000;
-                mp_led_update(tmp1, tmp2, 0x0A, mReport);
+                mp_led_update(tmp1, tmp2, MP_LED_PLUS_SIGN, mReport);
             } else {
                 send = false;
             }
@@ -986,11 +961,11 @@ void ToPanelThread::mp_processing(uint32_t msg, uint32_t u32data) {
            send = false;
             if (mModeVals.vs != u32data) {
                 mModeVals.vs = u32data;
-                mModeVals.vs_sign = 0x0A;
+                mModeVals.vs_sign = MP_LED_PLUS_SIGN;
                 if (mKnobPos == 2) {
                     tmp1 = dec2bcd(mModeVals.alt, 5) | 0xAAA00000;
                     tmp2 = dec2bcd((uint32_t)abs((int)mModeVals.vs), 4) | 0xAAAA0000;
-                    mp_led_update(tmp1, tmp2, 0x0A, mReport);
+                    mp_led_update(tmp1, tmp2, MP_LED_PLUS_SIGN, mReport);
                     send = true;
                 }
             }
@@ -999,11 +974,11 @@ void ToPanelThread::mp_processing(uint32_t msg, uint32_t u32data) {
            send = false;
             if (mModeVals.vs != u32data) {
                 mModeVals.vs = u32data;
-                mModeVals.vs_sign = 0x0E;
+                mModeVals.vs_sign = MP_LED_MINUS_SIGN;
                 if (mKnobPos == 2) {
                     tmp1 = dec2bcd(mModeVals.alt, 5) | 0xAAA00000;
                     tmp2 = dec2bcd((uint32_t)abs((int)mModeVals.vs), 4) | 0xAAAA0000;
-                    mp_led_update(tmp1, tmp2, 0x0E, mReport);
+                    mp_led_update(tmp1, tmp2, MP_LED_MINUS_SIGN, mReport);
                     send = true;
                 }
             }
@@ -1014,7 +989,7 @@ void ToPanelThread::mp_processing(uint32_t msg, uint32_t u32data) {
                 mModeVals.ias = u32data;
                 if (mKnobPos == 3) {
                     tmp1 = dec2bcd(mModeVals.ias, 4) | 0xAAAA0000;
-                    mp_led_update(tmp1, tmp2, 0x0A, mReport);
+                    mp_led_update(tmp1, tmp2, MP_LED_PLUS_SIGN, mReport);
                     send = true;
                 }
             }
@@ -1025,7 +1000,7 @@ void ToPanelThread::mp_processing(uint32_t msg, uint32_t u32data) {
                 mModeVals.hdg = u32data;
                 if (mKnobPos == 4) {
                     tmp1 = dec2bcd(mModeVals.hdg, 3) | 0xAAAAA000;
-                    mp_led_update(tmp1, tmp2, 0x0A, mReport);
+                    mp_led_update(tmp1, tmp2, MP_LED_PLUS_SIGN, mReport);
                     send = true;
                 }
             }
@@ -1036,7 +1011,7 @@ void ToPanelThread::mp_processing(uint32_t msg, uint32_t u32data) {
                 mModeVals.crs = u32data;
                 if (mKnobPos == 5) {
                     tmp1 = dec2bcd(mModeVals.crs, 3) | 0xAAAAA000;
-                    mp_led_update(tmp1, tmp2, 0x0A, mReport);
+                    mp_led_update(tmp1, tmp2, MP_LED_PLUS_SIGN, mReport);
                     send = true;
                 }
             }
@@ -1059,15 +1034,15 @@ LPRINTF(gTmp2);
                 break;
             case 3:
                 tmp1 = dec2bcd(mModeVals.ias, 4) | 0xAAAA0000;
-                mp_led_update(tmp1, tmp2, 0x0A, mReport);
+                mp_led_update(tmp1, tmp2, MP_LED_PLUS_SIGN, mReport);
                 break;
             case 4:
                 tmp1 = dec2bcd(mModeVals.hdg, 3) | 0xAAAAA000;
-                mp_led_update(tmp1, tmp2, 0x0A, mReport);
+                mp_led_update(tmp1, tmp2, MP_LED_PLUS_SIGN, mReport);
                 break;
             case 5:
                 tmp1 = dec2bcd(mModeVals.crs, 3) | 0xAAAAA000;
-                mp_led_update(tmp1, tmp2, 0x0A, mReport);
+                mp_led_update(tmp1, tmp2, MP_LED_PLUS_SIGN, mReport);
                 break;
             }
             if (mBtns.ap == 1) {

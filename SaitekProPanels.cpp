@@ -1533,7 +1533,7 @@ void mp_do_init() {
     uint32_t* m;
     uint32_t* x;
 
-    if (gPlaneLoaded) {
+    if (gPlaneLoaded != 0) {
         // not the user's plane
         return;
     }
