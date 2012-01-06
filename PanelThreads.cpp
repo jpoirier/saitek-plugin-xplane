@@ -922,7 +922,7 @@ void ToPanelThread::mp_processing(uint32_t msg, uint32_t u32data) {
             if (mKnobPos != 3) {
                 mKnobPos = 3;
                 tmp1 = dec2bcd(mModeVals.ias, 4) | 0xAAAA0000;
-                mp_led_update(tmp1, tmp2, MP_LED_PLUD_SIGN, mReport);
+                mp_led_update(tmp1, tmp2, MP_LED_PLUS_SIGN, mReport);
             } else {
                 send = false;
             }
