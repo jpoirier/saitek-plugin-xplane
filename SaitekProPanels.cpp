@@ -84,12 +84,14 @@ enum {
     MP_CMD_PASS_EVENT = 1,
     MP_CMD_OTTO_AUTOTHROTTLE_ON = 0,
     MP_CMD_OTTO_AUTOTHROTTLE_OFF,
+    MP_CMD_OTTO_AUTOTHROTTLE_TOGGLE,
     MP_CMD_FLAPS_UP,
     MP_CMD_FLAPS_DOWN,
     MP_CMD_PITCHTRIM_UP,
     MP_CMD_PITCHTRIM_DOWN,
     MP_CMD_OTTO_ON,
     MP_CMD_OTTO_OFF,
+    MP_CMD_OTTO_FD_UP_ONE,
     MP_CMD_OTTO_ARMED,
     MP_CMD_OTTO_AP_BTN,
     MP_CMD_OTTO_HDG_BTN,
@@ -220,6 +222,7 @@ XPLMCommandRef gMpApOnCmdRef = NULL;
 XPLMCommandRef gMpApOffCmdRef = NULL;
 XPLMCommandRef gMpApArmedCmdRef = NULL;
 XPLMCommandRef gMpApToggleCmdRef = NULL;
+XPLMCommandRef gMpApFdUpOneCmdRef = NULL;
 XPLMCommandRef gMpVrtclSpdDnCmdRef = NULL;
 XPLMCommandRef gMpVrtclSpdUpCmdRef = NULL;
 XPLMCommandRef gMpVrtclSpdCmdRef = NULL;
@@ -263,6 +266,7 @@ int32_t gMpBtn_Alt_TogglePending = 0;
 int32_t gMpBtn_Vs_TogglePending = 0;
 int32_t gMpBtn_Apr_TogglePending = 0;
 int32_t gMpBtn_Rev_TogglePending = 0;
+int32_t gMpAutothrottle_togglePending = 0;
 int32_t gMpAutothrottle_offPending = 0;
 int32_t gMpAutothrottle_onPending = 0;
 int32_t gMpAlt_Pending = 0;
@@ -381,6 +385,7 @@ uint32_t gMpAltTuneDnCnt = 0;
 #define sMP_OBS_HSI_UP_CR                   "sim/radios/obs_HSI_up"
 #define sMP_FLIGHT_DIR_ON_ONLY_CR           "sim/autopilot/flight_dir_on_only"
 #define sMP_FDIR_SERVOS_TOGGLE_CR           "sim/autopilot/fdir_servos_toggle"
+#define sMP_FDIR_SERVOS_UP_ONE_CR           "sim/autopilot/fdir_servos_up_one"
 #define sMP_SERVOS_AND_FLIGHT_DIR_ON_CR     "sim/autopilot/servos_and_flight_dir_on"
 #define sMP_SERVOS_AND_FLIGHT_DIR_OFF_CR    "sim/autopilot/servos_and_flight_dir_off"
 #define sMP_HEADING_CR                      "sim/autopilot/heading"
@@ -615,6 +620,15 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
             status = MP_CMD_EAT_EVENT;
         }
         break;
+    case MP_CMD_OTTO_AUTOTHROTTLE_TOGGLE:
+        pexchange((int*)&t, gMpAutothrottle_togglePending);
+        if (t > 0) {
+            pdecrement(&gMpAutothrottle_togglePending);
+            status = MP_CMD_PASS_EVENT;
+        } else {
+            status = MP_CMD_EAT_EVENT;
+        }
+        break;
     case CMD_SYS_AVIONICS_ON:
         pexchange((int*)&gAvPwrOn, true);
         m = new uint32_t;
@@ -638,6 +652,12 @@ int MultiPanelCommandHandler(XPLMCommandRef    inCommand,
         m = new uint32_t;
         *m = BAT1_OFF_MSG;
         gMp_ojq.post(new myjob(m));
+        break;
+    case MP_CMD_OTTO_FD_UP_ONE:
+        m = new uint32_t;
+        // Flight director mode, 0 is off, 1 is on, 2 is on with autopilot servos
+        x = (uint32_t)XPLMGetDatai(gMpFlghtDirModeDataRef);
+        *m = (x == 0) ? MP_BTN_AP_OFF_MSG : ((x == 2) ? MP_BTN_AP_ARMED_MSG : MP_BTN_AP_ON_MSG);
         break;
     case MP_CMD_OTTO_ON:
         m = new uint32_t;
@@ -1113,6 +1133,7 @@ float MultiPanelFlightLoopCallback(float   inElapsedSinceLastCall,
                     XPLMCommandOnce(gMpFlpsDnCmdRef);
                     break;
                 //--- autothrottle
+                // gMpAutothrottle_togglePending ??
                 case MP_AUTOTHROTTLE_ON_CMD_MSG:
                     pincrement(&gMpAutothrottle_onPending);
                     XPLMCommandOnce(gMpAtThrrtlOnCmdRef);
@@ -1124,6 +1145,9 @@ float MultiPanelFlightLoopCallback(float   inElapsedSinceLastCall,
                 //-- buttons
                 case MP_BTN_AP_TOGGLE_CMD_MSG:
                     XPLMCommandOnce(gMpApToggleCmdRef);
+                    break;
+                case MP_BTN_FD_UP_ONE_CMD_MSG:
+                    XPLMCommandOnce(gMpApFdUpOneCmdRef);
                     break;
                 case MP_BTN_HDG_TOGGLE_CMD_MSG:
                     XPLMCommandOnce(gMpHdgCmdRef);
@@ -1591,12 +1615,12 @@ void mp_do_init() {
     gMp_ojq.post(new myjob(m));
     //--- buttons
     // AP button
-// XXX: fixme
     x = new uint32_t;
+    // Flight director mode, 0 is off, 1 is on, 2 is on with autopilot servos
+    t = XPLMGetDatai(gMpFlghtDirModeDataRef);
+    *x = (t == 0) ? MP_BTN_AP_OFF_MSG : ((t == 2) ? MP_BTN_AP_ON_MSG : MP_BTN_AP_ARMED_MSG);
 //    t = XPLMGetDatai(gMpApOnDataRef);
-//    *x = (t == 0) ? MP_BTN_AP_OFF_MSG : ((t == 2) ? MP_BTN_AP_ON_MSG : MP_BTN_AP_ARMED_MSG);
-    t = XPLMGetDatai(gMpApOnDataRef);
-    *x = (t == 0) ? MP_BTN_AP_OFF_MSG : MP_BTN_AP_ON_MSG;
+//    *x = (t == 0) ? MP_BTN_AP_OFF_MSG : MP_BTN_AP_ON_MSG;
     gMp_ojq.post(new myjob(x));
     // ALT button
     x = new uint32_t;
