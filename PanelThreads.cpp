@@ -787,7 +787,9 @@ void ToPanelThread::execute() {
         }
 
         // TODO: figure out the best sleep time!
-//        psleep(100);
+        // 100Hz -> 10ms sleep
+        // TODO: remove this line (set to prevent crash on startup).
+        //psleep(10);
 
         // message from the xplane side or looped back
         // from FromPanelThread::mp_processing
@@ -852,6 +854,7 @@ LPRINTF("Saitek ProPanels Plugin: ToPanelThread::rp_init\n");
     }
 }
 
+
 inline void ToPanelThread::rp_upper_led_update(uint32_t x, uint32_t y, uint8_t m[]) {
     m[0] = 0x00;
     m[1] = ((x >> 16) & 0xFF);
@@ -888,7 +891,6 @@ inline void ToPanelThread::rp_lower_led_update(uint32_t x, uint32_t y, uint8_t m
  *
  */
 void ToPanelThread::rp_processing(uint32_t msg, uint32_t u32data) {
-
     bool send = true;
     uint32_t tmp1 = 0;
     uint32_t tmp2 = 0;
