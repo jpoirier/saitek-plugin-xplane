@@ -79,7 +79,7 @@ class ToPanelThread : public pt::thread {
         bool                    mBat1On;
         bool                    mAthlOn;
 
-        uint8_t                 mReport[OUT_BUF_CNT];
+        uint8_t                 mPanelReport[OUT_BUF_CNT];
         MpModeVals              mModeVals;
         MpBtnStates             mBtns;
         int                     mRes;
