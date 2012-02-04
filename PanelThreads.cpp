@@ -48,8 +48,9 @@ USING_PTYPES
 //static void toggle_bit(unsigned char* c, int pos);
 
 const int MSG_MYJOB         = MSG_USER + 1;
-int volatile pc_run         = false;
-int volatile threads_run    = false;
+int volatile gPcRun         = false;
+int volatile gThreadsRun    = false;
+int volatile gPluginEnabled = false;
 
 // panel threads
 hid_device *volatile gRpHidHandle = NULL;
@@ -57,9 +58,12 @@ hid_device *volatile gMpHidHandle = NULL;
 hid_device *volatile gSpHidHandle = NULL;
 
 // index[0] - report ID, which is always zero
-// TODO: radio panel message
-const unsigned char rp_blank_panel[13] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+const unsigned char rp_blank_panel[23] = {0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+const unsigned char rp_zero_panel[23] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0xFF, 0xFF};
 
 const unsigned char mp_blank_panel[13] = {0x00, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
                                         0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x00, 0x00};
@@ -70,6 +74,8 @@ const unsigned char mp_zero_panel[13] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 // TODO: switch panel message
 const unsigned char sp_blank_panel[2] = {0x00, 0x00};
 const unsigned char sp_green_panel[2] = {0x00, 0x07};
+const unsigned char sp_red_panel[2] = {0x00, 0x38};
+const unsigned char sp_orange_panel[2] = {0x00, 0x3F};
 
 trigger gPcTrigger(true, false);
 trigger gRpTrigger(false, false);
@@ -138,7 +144,7 @@ void FromPanelThread::execute() {
         break;
     }
 
-    while (threads_run) {
+    while (gThreadsRun) {
         mState->wait();
 
         if (mDoInit) {
@@ -152,17 +158,23 @@ void FromPanelThread::execute() {
             continue;
         }
 
-        if ((mRes = hid_read((hid_device*)mHid, (uint8_t*)&mTmp, sizeof(uint32_t))) <= 0) {
-            if (mRes == HID_ERROR) {
-                // TODO: log error
+        if(!gPluginEnabled) {
+            mRes = hid_read_timeout((hid_device*)mHid, (uint8_t*)&mTmp, sizeof(uint32_t), 100);
+        } else {
+            if ((mRes = hid_read((hid_device*)mHid, (uint8_t*)&mTmp, sizeof(uint32_t))) <= 0) {
+                if (mRes == HID_ERROR) {
+                    // TODO: log error
+                }
+                continue;
             }
-            continue;
-        }
 #if DO_LPRINTFS
-sprintf(gTmp1, "Saitek ProPanels Plugin: FromPanelThread::execute ox%X \n", mTmp);
+sprintf(gTmp1, "Saitek ProPanels Plugin: FromPanelThread::execute 0x%X \n", mTmp);
 LPRINTF(gTmp1);
 #endif
-        (this->*proc_msg)(mTmp);
+            if (gPluginEnabled) {
+                (this->*proc_msg)(mTmp);
+            }
+        }
     }
 
     LPRINTF("Saitek ProPanels Plugin: FromPanelThread goodbye\n");
@@ -191,18 +203,180 @@ void FromPanelThread::mp_init() {
 void FromPanelThread::sp_init() {
     // check hid before making calls
     // set mDoInit
+	mDoInit = false;
 }
 
 
 void FromPanelThread::rp_init() {
     // check hid before making calls
     // set mDoInit
+	//mDoInit = false;
 }
 
 /**
  *
  */
 void FromPanelThread::rp_processing(uint32_t msg) {
+    uint32_t upperKnob = msg & RP_READ_UPPER_KNOB_MODE_MASK;
+    uint32_t lowerKnob = msg & RP_READ_LOWER_KNOB_MODE_MASK;
+    uint32_t upperFineTuning = msg & RP_READ_UPPER_FINE_TUNING_MASK;
+    uint32_t upperCoarseTuning = msg & RP_READ_UPPER_COARSE_TUNING_MASK;
+    uint32_t lowerFineTuning = msg & RP_READ_LOWER_FINE_TUNING_MASK;
+    uint32_t lowerCoarseTuning = msg & RP_READ_LOWER_COARSE_TUNING_MASK;
+    //uint32_t upperBtn = msg & RP_READ_UPPER_ACT_STBY;
+    //uint32_t lowerBtn = msg & RP_READ_LOWER_ACT_STBY;
+
+//    static char tmp[100];
+//    sprintf(tmp, "Saitek ProPanels Plugin: msg received  0x%.8X \n", msg);
+//    DPRINTF(tmp);
+
+    uint32_t msg2= 0;
+    uint32_t* x;
+    msg = 0;
+
+    if (upperCoarseTuning) {
+		switch(upperKnob) {
+		case RP_READ_UPPER_KNOB_COM1:
+			msg = msg2 = (upperCoarseTuning == RP_READ_UPPER_COARSE_RIGHT) ? RP_COM1_COARSE_UP_CMD_MSG : RP_COM1_COARSE_DOWN_CMD_MSG;
+			break;
+		case RP_READ_UPPER_KNOB_COM2:
+			msg = msg2 = (upperCoarseTuning == RP_READ_UPPER_COARSE_RIGHT) ? RP_COM2_COARSE_UP_CMD_MSG : RP_COM2_COARSE_DOWN_CMD_MSG;
+			break;
+		case RP_READ_UPPER_KNOB_NAV1:
+			//TODO: implementation
+			break;
+		case RP_READ_UPPER_KNOB_NAV2:
+			//TODO: implementation
+			break;
+		case RP_READ_UPPER_KNOB_ADF:
+			//TODO: implementation
+			break;
+		case RP_READ_UPPER_KNOB_DME:
+			//TODO: implementation
+			break;
+		case RP_READ_UPPER_KNOB_TRANSPNDR:
+			//TODO: implementation
+			break;
+		default:
+			// TODO: log error
+			break;
+		}
+	} else if (upperFineTuning) {
+		switch(upperKnob) {
+		case RP_READ_UPPER_KNOB_COM1:
+			msg = msg2 = (upperFineTuning == RP_READ_UPPER_FINE_RIGHT) ? RP_COM1_FINE_UP_CMD_MSG : RP_COM1_FINE_DOWN_CMD_MSG;
+			break;
+		case RP_READ_UPPER_KNOB_COM2:
+			msg = msg2 = (upperFineTuning == RP_READ_UPPER_FINE_RIGHT) ? RP_COM2_FINE_UP_CMD_MSG : RP_COM2_FINE_DOWN_CMD_MSG;
+			break;
+		case RP_READ_UPPER_KNOB_NAV1:
+			//TODO: implementation
+			break;
+		case RP_READ_UPPER_KNOB_NAV2:
+			//TODO: implementation
+			break;
+		case RP_READ_UPPER_KNOB_ADF:
+			//TODO: implementation
+			break;
+		case RP_READ_UPPER_KNOB_DME:
+			//TODO: implementation
+			break;
+		case RP_READ_UPPER_KNOB_TRANSPNDR:
+			//TODO: implementation
+			break;
+		default:
+			// TODO: log error
+			break;
+		}
+
+	}
+
+	if (msg) {
+		// to the xplane side
+		x = new uint32_t;
+		*x = msg;
+		ijq->post(new myjob(x));
+
+		// loopback to the panel
+		if (msg2) {
+			x = new uint32_t;
+			*x = msg2;
+			ojq->post(new myjob(x));
+		}
+
+		msg = msg2 = 0;
+	}
+
+    if (upperKnob) {
+        switch(upperKnob) {
+        case RP_READ_UPPER_KNOB_COM1:
+            msg = RP_UP_KNOB_COM1_POS_MSG;
+            break;
+        case RP_READ_UPPER_KNOB_COM2:
+            msg = RP_UP_KNOB_COM2_POS_MSG;
+            break;
+        case RP_READ_UPPER_KNOB_NAV1:
+            msg = RP_UP_KNOB_NAV1_POS_MSG;
+            break;
+        case RP_READ_UPPER_KNOB_NAV2:
+            msg = RP_UP_KNOB_NAV2_POS_MSG;
+            break;
+        case RP_READ_UPPER_KNOB_ADF:
+            msg = RP_UP_KNOB_ADF_POS_MSG;
+            break;
+        case RP_READ_UPPER_KNOB_DME:
+            msg = RP_UP_KNOB_DME_POS_MSG;
+            break;
+        case RP_READ_UPPER_KNOB_TRANSPNDR:
+            msg = RP_UP_KNOB_XPDR_POS_MSG;
+            break;
+        default:
+            // TODO: log error
+            break;
+        }
+    }
+
+    if (msg) {
+        x = new uint32_t;
+        *x = msg;
+        ojq->post(new myjob(x));
+    }
+
+    msg = 0;
+    if (lowerKnob) {
+        switch(lowerKnob) {
+        case RP_READ_LOWER_KNOB_COM1:
+            msg = RP_LO_KNOB_COM1_POS_MSG;
+            break;
+        case RP_READ_LOWER_KNOB_COM2:
+            msg = RP_LO_KNOB_COM2_POS_MSG;
+            break;
+        case RP_READ_LOWER_KNOB_NAV1:
+            msg = RP_LO_KNOB_NAV1_POS_MSG;
+            break;
+        case RP_READ_LOWER_KNOB_NAV2:
+            msg = RP_LO_KNOB_NAV2_POS_MSG;
+            break;
+        case RP_READ_LOWER_KNOB_ADF:
+            msg = RP_LO_KNOB_ADF_POS_MSG;
+            break;
+        case RP_READ_LOWER_KNOB_DME:
+            msg = RP_LO_KNOB_DME_POS_MSG;
+            break;
+        case RP_READ_LOWER_KNOB_TRANSPNDR:
+            msg = RP_LO_KNOB_XPDR_POS_MSG;
+            break;
+        default:
+            // TODO: log error
+            break;
+        }
+    }
+
+    if (msg) {
+        x = new uint32_t;
+        *x = msg;
+        ojq->post(new myjob(x));
+    }
 }
 
 
@@ -390,29 +564,23 @@ void FromPanelThread::sp_processing(uint32_t msg) {
     uint32_t gearleverdown = msg & SP_READ_GEARLEVER_DOWN_MASK;
 
     uint32_t* x;
-    bool to_iqueue = true;
 
-    static char tmp[100];
-    sprintf(tmp, "Saitek ProPanels Plugin: msg received  0x%.8X \n", msg);
-    DPRINTF(tmp);
+//    static char tmp[100];
+//    sprintf(tmp, "Saitek ProPanels Plugin: msg received  0x%.8X \n", msg);
+//    DPRINTF(tmp);
 
     msg = 0;
 
     if (enginesknob == 0x002000) {
-        to_iqueue = false;
-    	msg = SP_MAGNETOS_OFF_MSG;
+    	msg = SP_MAGNETOS_OFF_CMD_MSG;
     } else if (enginesknob == 0x004000) {
-        to_iqueue = false;
-    	msg = SP_MAGNETOS_RIGHT_MSG;
+    	msg = SP_MAGNETOS_RIGHT_CMD_MSG;
     } else if (enginesknob == 0x008000) {
-        to_iqueue = false;
-    	msg = SP_MAGNETOS_LEFT_MSG;
+    	msg = SP_MAGNETOS_LEFT_CMD_MSG;
     } else if (enginesknob == 0x010000) {
-        to_iqueue = false;
-    	msg = SP_MAGNETOS_BOTH_MSG;
+    	msg = SP_MAGNETOS_BOTH_CMD_MSG;
     } else if (enginesknob == 0x020000) {
-        to_iqueue = false;
-    	msg = SP_MAGNETOS_START_MSG;
+    	msg = SP_ENGINE_START_CMD_MSG;
     }
 
     if (msg) {
@@ -424,67 +592,51 @@ void FromPanelThread::sp_processing(uint32_t msg) {
     }
 
     if (masterbat) {
-        to_iqueue = false;
-        msg = SP_MASTER_BATTERY_ON_MSG;
+        msg = SP_MASTER_BATTERY_ON_CMD_MSG;
     } else {
-        to_iqueue = false;
-        msg = SP_MASTER_BATTERY_OFF_MSG;
+        msg = SP_MASTER_BATTERY_OFF_CMD_MSG;
     }
 
     if (masteralt) {
-        to_iqueue = false;
-        msg = SP_MASTER_ALT_BATTERY_ON_MSG;
+        msg = SP_MASTER_ALT_BATTERY_ON_CMD_MSG;
     } else {
-        to_iqueue = false;
-        msg = SP_MASTER_ALT_BATTERY_OFF_MSG;
+        msg = SP_MASTER_ALT_BATTERY_OFF_CMD_MSG;
     }
 
     if (avionicsmaster) {
-        to_iqueue = false;
-        msg = SP_MASTER_AVIONICS_ON_MSG;
+        msg = SP_MASTER_AVIONICS_ON_CMD_MSG;
     } else {
-        to_iqueue = false;
-        msg = SP_MASTER_AVIONICS_OFF_MSG;
+        msg = SP_MASTER_AVIONICS_OFF_CMD_MSG;
     }
 
     if (fuelpump) {
-        to_iqueue = false;
-        msg = SP_FUEL_PUMP_ON_MSG;
+        msg = SP_FUEL_PUMP_ON_CMD_MSG;
     } else {
-        to_iqueue = false;
-        msg = SP_FUEL_PUMP_OFF_MSG;
+        msg = SP_FUEL_PUMP_OFF_CMD_MSG;
     }
 
     if (deice) {
-        to_iqueue = false;
-        msg = SP_DEICE_ON_MSG;
+        msg = SP_DEICE_ON_CMD_MSG;
     } else {
-        to_iqueue = false;
-        msg = SP_DEICE_OFF_MSG;
+        msg = SP_DEICE_OFF_CMD_MSG;
     }
 
     if (pitotheat) {
-        to_iqueue = false;
-        msg = SP_PITOT_HEAT_ON_MSG;
+        msg = SP_PITOT_HEAT_ON_CMD_MSG;
     } else {
-        to_iqueue = false;
-        msg = SP_PITOT_HEAT_OFF_MSG;
+        msg = SP_PITOT_HEAT_OFF_CMD_MSG;
     }
 
     if (cowl) {
-        to_iqueue = false;
-        msg = SP_COWL_CLOSED_MSG;
+        msg = SP_COWL_CLOSED_CMD_MSG;
     } else {
-        to_iqueue = false;
-        msg = SP_COWL_OPEN_MSG;
+        msg = SP_COWL_OPEN_CMD_MSG;
     }
 
     if (lightspanel) {
-        to_iqueue = false;
-        msg = SP_LIGHTS_PANEL_ON_MSG;
+        msg = SP_LIGHTS_PANEL_ON_CMD_MSG;
     } else {
-        to_iqueue = false;
-        msg = SP_LIGHTS_PANEL_OFF_MSG;
+        msg = SP_LIGHTS_PANEL_OFF_CMD_MSG;
     }
 
     if (msg) {
@@ -496,11 +648,9 @@ void FromPanelThread::sp_processing(uint32_t msg) {
     }
 
     if (lightsbeacon) {
-        to_iqueue = false;
-        msg = SP_LIGHTS_BEACON_ON_MSG;
+        msg = SP_LIGHTS_BEACON_ON_CMD_MSG;
     } else {
-        to_iqueue = false;
-        msg = SP_LIGHTS_BEACON_OFF_MSG;
+        msg = SP_LIGHTS_BEACON_OFF_CMD_MSG;
     }
 
     if (msg) {
@@ -512,11 +662,9 @@ void FromPanelThread::sp_processing(uint32_t msg) {
     }
 
     if (lightsnav) {
-        to_iqueue = false;
-        msg = SP_LIGHTS_NAV_ON_MSG;
+        msg = SP_LIGHTS_NAV_ON_CMD_MSG;
     } else {
-        to_iqueue = false;
-        msg = SP_LIGHTS_NAV_OFF_MSG;
+        msg = SP_LIGHTS_NAV_OFF_CMD_MSG;
     }
 
     if (msg) {
@@ -528,11 +676,9 @@ void FromPanelThread::sp_processing(uint32_t msg) {
     }
 
     if (lightsstrobe) {
-        to_iqueue = false;
-        msg = SP_LIGHTS_STROBE_ON_MSG;
+        msg = SP_LIGHTS_STROBE_ON_CMD_MSG;
     } else {
-        to_iqueue = false;
-        msg = SP_LIGHTS_STROBE_OFF_MSG;
+        msg = SP_LIGHTS_STROBE_OFF_CMD_MSG;
     }
 
     if (msg) {
@@ -544,11 +690,9 @@ void FromPanelThread::sp_processing(uint32_t msg) {
     }
 
     if (lightstaxi) {
-        to_iqueue = false;
-        msg = SP_LIGHTS_TAXI_ON_MSG;
+        msg = SP_LIGHTS_TAXI_ON_CMD_MSG;
     } else {
-        to_iqueue = false;
-        msg = SP_LIGHTS_TAXI_OFF_MSG;
+        msg = SP_LIGHTS_TAXI_OFF_CMD_MSG;
     }
 
     if (msg) {
@@ -560,11 +704,9 @@ void FromPanelThread::sp_processing(uint32_t msg) {
     }
 
     if (lightslanding) {
-        to_iqueue = false;
-        msg = SP_LIGHTS_LANDING_ON_MSG;
+        msg = SP_LIGHTS_LANDING_ON_CMD_MSG;
     } else {
-        to_iqueue = false;
-        msg = SP_LIGHTS_LANDING_OFF_MSG;
+        msg = SP_LIGHTS_LANDING_OFF_CMD_MSG;
     }
 
     if (msg) {
@@ -576,16 +718,18 @@ void FromPanelThread::sp_processing(uint32_t msg) {
     }
 
     if (gearleverup) {
-        to_iqueue = false;
-        msg = SP_LANDING_GEAR_UP_MSG;
+        msg = SP_LANDING_GEAR_UP_CMD_MSG;
+
+        x = new uint32_t;
+        *x = SP_ALL_GREEN_SCRN_MSG;
+        ojq->post(new myjob(x));
     }
 
     if (gearleverdown) {
-        to_iqueue = false;
-        msg = SP_LANDING_GEAR_DOWN_MSG;
+        msg = SP_LANDING_GEAR_DOWN_CMD_MSG;
 
         x = new uint32_t;
-        *x = SP_ALL_GREEN_SCRN;
+        *x = SP_ALL_RED_SCRN_MSG;
         ojq->post(new myjob(x));
     }
 
@@ -615,23 +759,27 @@ void ToPanelThread::execute() {
 
     switch(mProduct) {
     case RP_PROD_ID:
+        //LPRINTF("Saitek ProPanels Plugin: ToPanelThread::execute RP_PROD_ID.\n");
         init = &ToPanelThread::rp_init;
         proc_msg = &ToPanelThread::rp_processing;
         break;
     case MP_PROD_ID:
+        //LPRINTF("Saitek ProPanels Plugin: ToPanelThread::execute MP_PROD_ID.\n");
         init = &ToPanelThread::mp_init;
         proc_msg = &ToPanelThread::mp_processing;
         break;
     case SP_PROD_ID:
+        //LPRINTF("Saitek ProPanels Plugin: ToPanelThread::execute SP_PROD_ID.\n");
         init = &ToPanelThread::sp_init;
         proc_msg = &ToPanelThread::sp_processing;
         break;
     default:
         // TODO: log error
+        LPRINTF("Saitek ProPanels Plugin: ToPanelThread::execute error.\n");
         break;
     }
 
-    while (threads_run) {
+    while (gThreadsRun) {
         mState->wait();
 
         if (mDoInit) {
@@ -652,7 +800,7 @@ void ToPanelThread::execute() {
             d2 = 0;
 
             // check for a multi-part message
-            if (d1 == MP_MPM) {
+            if ((d1 == MP_MPM) || (d1 == RP_MPM)) {
                 d1 = p[1];
                 d2 = p[2];
             }
@@ -660,7 +808,10 @@ void ToPanelThread::execute() {
 sprintf(gTmp2, "Saitek ProPanels Plugin: ToPanelThread::execute %d:%d \n", d1, d2);
 LPRINTF(gTmp2);
 #endif
-            (this->*proc_msg)(d1, d2);
+
+            if (mHid) {
+                (this->*proc_msg)(d1, d2);
+            }
         }
         delete msg;
     }
@@ -670,29 +821,256 @@ LPRINTF(gTmp2);
 
 
 void ToPanelThread::mp_init() {
+#if DO_LPRINTFS
+LPRINTF("Saitek ProPanels Plugin: ToPanelThread::mp_init\n");
+#endif
     mDoInit = false;
-    (this->*proc_msg)(MP_ZERO_SCRN_MSG, 0);
+    if (mHid) {
+        (this->*proc_msg)(MP_BLANK_SCRN_MSG, 0);
+    }
 }
 
 
 void ToPanelThread::sp_init() {
-//    mDoInit = false;
-    // check hid before making calls
-    // set mDoInit
+#if DO_LPRINTFS
+LPRINTF("Saitek ProPanels Plugin: ToPanelThread::sp_init\n");
+#endif
+    mDoInit = false;
+    if (mHid) {
+        (this->*proc_msg)(SP_BLANK_SCRN_MSG, 0);
+    }
 }
 
 
 void ToPanelThread::rp_init() {
-//    mDoInit = false;
-    // check hid before making calls
-    // set mDoInit
+#if DO_LPRINTFS
+LPRINTF("Saitek ProPanels Plugin: ToPanelThread::rp_init\n");
+#endif
+    mDoInit = false;
+    if (mHid) {
+        (this->*proc_msg)(RP_BLANK_SCRN_MSG, 0);
+    }
 }
 
+inline void ToPanelThread::rp_upper_led_update(uint32_t x, uint32_t y, uint8_t m[]) {
+    m[0] = 0x00;
+    m[1] = ((x >> 16) & 0xFF);
+    m[2] = ((x >> 12) & 0xFF);
+    m[3] = ((x >>  8) & 0xFF);
+    m[4] = ((x >>  4) & 0xFF);
+    m[5] = ((x >>  0) & 0xFF);
+    m[6] = ((y >> 16) & 0xFF);
+    m[7] = ((y >> 12) & 0xFF);
+    m[8] = ((y >>  8) & 0xFF);
+    m[9] = ((y >>  4) & 0xFF);
+    m[10] = ((y >>  0) & 0xFF);
+    m[21] = 0x00;
+    m[22] = 0x00;
+}
+
+inline void ToPanelThread::rp_lower_led_update(uint32_t x, uint32_t y, uint8_t m[]) {
+    m[0] = 0x00;
+    m[11] = ((x >> 16) & 0xFF);
+    m[12] = ((x >> 12) & 0xFF);
+    m[13] = ((x >>  8) & 0xFF);
+    m[14] = ((x >>  4) & 0xFF);
+    m[15] = ((x >>  0) & 0xFF);
+    m[16] = ((y >> 16) & 0xFF);
+    m[17] = ((y >> 12) & 0xFF);
+    m[18] = ((y >>  8) & 0xFF);
+    m[19] = ((y >>  4) & 0xFF);
+    m[20] = ((y >>  0) & 0xFF);
+    m[21] = 0x00;
+    m[22] = 0x00;
+}
 
 /**
  *
  */
-void ToPanelThread::rp_processing(uint32_t msg, uint32_t data) {
+void ToPanelThread::rp_processing(uint32_t msg, uint32_t u32data) {
+
+    bool send = true;
+    uint32_t tmp1 = 0;
+    uint32_t tmp2 = 0;
+
+    switch(msg) {
+    case RP_BLANK_SCRN_MSG:
+        hid_send_feature_report((hid_device*)mHid, rp_blank_panel, sizeof(rp_blank_panel));
+        return;
+    case RP_ZERO_SCRN_MSG:
+        hid_send_feature_report((hid_device*)mHid, rp_zero_panel, sizeof(rp_zero_panel));
+        return;
+    case RP_UP_KNOB_COM1_POS_MSG:
+        if (mRpUpperKnobPos != 1) {
+            mRpUpperKnobPos = 1;
+            tmp1 = dec2bcd(mRpModeVals.com1, 5);
+            tmp2 = dec2bcd(mRpModeVals.com1Stdby, 5);
+            rp_upper_led_update(tmp1, tmp2, mRpReport);
+        } else {
+            send = false;
+        }
+        break;
+    case RP_UP_KNOB_COM2_POS_MSG:
+        if (mRpUpperKnobPos != 2) {
+            mRpUpperKnobPos = 2;
+            tmp1 = dec2bcd(mRpModeVals.com2, 5);
+            tmp2 = dec2bcd(mRpModeVals.com2Stdby, 5);
+            rp_upper_led_update(tmp1, tmp2, mRpReport);
+        } else {
+            send = false;
+        }
+        break;
+    case RP_LO_KNOB_COM1_POS_MSG:
+        if (mRpLowerKnobPos != 1) {
+            mRpLowerKnobPos = 1;
+            tmp1 = dec2bcd(mRpModeVals.com1, 5);
+            tmp2 = dec2bcd(mRpModeVals.com1Stdby, 5);
+            rp_lower_led_update(tmp1, tmp2, mRpReport);
+        } else {
+            send = false;
+        }
+        break;
+    case RP_LO_KNOB_COM2_POS_MSG:
+        if (mRpLowerKnobPos != 2) {
+            mRpLowerKnobPos = 2;
+            tmp1 = dec2bcd(mRpModeVals.com2, 5);
+            tmp2 = dec2bcd(mRpModeVals.com2Stdby, 5);
+            rp_lower_led_update(tmp1, tmp2, mRpReport);
+        } else {
+            send = false;
+        }
+        break;
+    case RP_COM1_VAL_MSG:
+        send = false;
+        if (mRpModeVals.com1 != u32data) {
+            mRpModeVals.com1 = u32data;
+            if (mRpUpperKnobPos == 1 || mRpLowerKnobPos == 1) {
+                tmp1 = dec2bcd(mRpModeVals.com1, 5);
+                tmp2 = dec2bcd(mRpModeVals.com1Stdby, 5);
+                rp_upper_led_update(tmp1, tmp2, mRpReport);
+                rp_lower_led_update(tmp1, tmp2, mRpReport);
+                send = true;
+            }
+        }
+        break;
+    case RP_COM1_STDBY_VAL_MSG:
+        send = false;
+        if (mRpModeVals.com1Stdby != u32data) {
+            mRpModeVals.com1Stdby = u32data;
+            if (mRpUpperKnobPos == 1 || mRpLowerKnobPos == 1) {
+                tmp1 = dec2bcd(mRpModeVals.com1, 5);
+                tmp2 = dec2bcd(mRpModeVals.com1Stdby, 5);
+                rp_upper_led_update(tmp1, tmp2, mRpReport);
+                rp_lower_led_update(tmp1, tmp2, mRpReport);
+                send = true;
+            }
+        }
+        break;
+    case RP_COM2_VAL_MSG:
+       send = false;
+        if (mRpModeVals.com2 != u32data) {
+            mRpModeVals.com2 = u32data;
+            if (mRpUpperKnobPos == 2 || mRpLowerKnobPos == 2) {
+                tmp1 = dec2bcd(mRpModeVals.com2, 5);
+                tmp2 = dec2bcd(mRpModeVals.com2Stdby, 5);
+                rp_upper_led_update(tmp1, tmp2, mRpReport);
+                rp_lower_led_update(tmp1, tmp2, mRpReport);
+                send = true;
+            }
+        }
+    case RP_COM2_STDBY_VAL_MSG:
+        send = false;
+        if (mRpModeVals.com2Stdby != u32data) {
+            mRpModeVals.com2Stdby = u32data;
+            if (mRpUpperKnobPos == 2 || mRpLowerKnobPos == 2) {
+                tmp1 = dec2bcd(mRpModeVals.com2, 5);
+                tmp2 = dec2bcd(mRpModeVals.com2Stdby, 5);
+                rp_upper_led_update(tmp1, tmp2, mRpReport);
+                rp_lower_led_update(tmp1, tmp2, mRpReport);
+                send = true;
+            }
+        }
+        break;
+    case RP_COM1_COARSE_UP_CMD_MSG:
+        send = false;
+        gRpUpperFineTuneUpCnt += 1;
+        if (gRpUpperFineTuneUpCnt >= gRpTuningThresh) {
+            mRpModeVals.com1Stdby += 1;
+            if (mRpUpperKnobPos == 1) {
+                tmp1 = dec2bcd(mRpModeVals.com1, 5);
+                tmp2 = dec2bcd(mRpModeVals.com1Stdby, 5);
+                rp_lower_led_update(tmp1, tmp2, mRpReport);
+                send = true;
+            }
+            gRpUpperCoarseTuneUpCnt = 0;
+        }
+        gRpUpperCoarseTuneDownCnt = 0;
+        break;
+    case RP_COM1_COARSE_DOWN_CMD_MSG:
+        send = false;
+        gRpUpperCoarseTuneDownCnt += 1;
+        if (gRpUpperCoarseTuneDownCnt >= gRpTuningThresh) {
+            mRpModeVals.com1Stdby -= 1;
+            if (mRpUpperKnobPos == 1) {
+                tmp1 = dec2bcd(mRpModeVals.com1, 5);
+                tmp2 = dec2bcd(mRpModeVals.com1Stdby, 5);
+                rp_lower_led_update(tmp1, tmp2, mRpReport);
+                send = true;
+            }
+            gRpUpperCoarseTuneDownCnt = 0;
+        }
+        gRpUpperCoarseTuneUpCnt = 0;
+        break;
+    case RP_COM1_FINE_UP_CMD_MSG:
+        send = false;
+        gRpUpperFineTuneUpCnt += 1;
+        if (gRpUpperFineTuneUpCnt >= gRpTuningThresh) {
+            mRpModeVals.com1Stdby += 1;
+            if (mRpUpperKnobPos == 1) {
+                tmp1 = dec2bcd(mRpModeVals.com1, 5);
+                tmp2 = dec2bcd(mRpModeVals.com1Stdby, 5);
+                rp_lower_led_update(tmp1, tmp2, mRpReport);
+                send = true;
+            }
+            gRpUpperFineTuneUpCnt = 0;
+        }
+        gRpUpperFineTuneDownCnt = 0;
+        break;
+    case RP_COM1_FINE_DOWN_CMD_MSG:
+        send = false;
+        gRpUpperFineTuneDownCnt += 1;
+        if (gRpUpperFineTuneDownCnt >= gRpTuningThresh) {
+            mRpModeVals.com1Stdby -= 1;
+            if (mRpUpperKnobPos == 1) {
+                tmp1 = dec2bcd(mRpModeVals.com1, 5);
+                tmp2 = dec2bcd(mRpModeVals.com1Stdby, 5);
+                rp_lower_led_update(tmp1, tmp2, mRpReport);
+                send = true;
+            }
+            gRpUpperFineTuneDownCnt = 0;
+        }
+        gRpUpperFineTuneUpCnt = 0;
+        break;
+    case RP_COM2_COARSE_UP_CMD_MSG:
+    case RP_COM2_COARSE_DOWN_CMD_MSG:
+    case RP_COM2_FINE_UP_CMD_MSG:
+    case RP_COM2_FINE_DOWN_CMD_MSG:
+         send = false;
+        if (mRpUpperKnobPos == 2) {
+            tmp1 = dec2bcd(mRpModeVals.com2, 5);
+            tmp2 = dec2bcd(mRpModeVals.com2Stdby, 5);
+            rp_lower_led_update(tmp1, tmp2, mRpReport);
+            send = true;
+        }
+        break;
+
+    default:
+        send = false;
+        break;
+    }
+    if (send) {
+        hid_send_feature_report((hid_device*)mHid, mRpReport, sizeof(mRpReport));
+    }
 }
 
 
@@ -1164,7 +1542,6 @@ LPRINTF(gTmp2);
  *
  */
 void ToPanelThread::sp_processing(uint32_t msg, uint32_t u32data) {
-    LPRINTF("Saitek ProPanels Plugin: ToPanelThread::sp_processing\n");
 
 	bool data = true;
     if (!u32data) {
@@ -1173,11 +1550,19 @@ void ToPanelThread::sp_processing(uint32_t msg, uint32_t u32data) {
 
 // TODO: state information?
     switch(msg) {
-    case SP_ALL_GREEN_SCRN:
+    case SP_ALL_GREEN_SCRN_MSG:
         hid_send_feature_report((hid_device*)mHid, sp_green_panel, sizeof(sp_green_panel));
         return;
+    case SP_BLANK_SCRN_MSG:
+    	hid_send_feature_report((hid_device*)mHid, sp_blank_panel, sizeof(sp_blank_panel));
+        return;
+    case SP_ALL_RED_SCRN_MSG:
+    	hid_send_feature_report((hid_device*)mHid, sp_red_panel, sizeof(sp_red_panel));
+        return;
+    case SP_ALL_ORANGE_SCRN_MSG:
+    	hid_send_feature_report((hid_device*)mHid, sp_orange_panel, sizeof(sp_orange_panel));
+        return;
     default:
-        hid_send_feature_report((hid_device*)mHid, sp_blank_panel, sizeof(sp_blank_panel));
         break;
     }
 
@@ -1188,16 +1573,16 @@ void ToPanelThread::sp_processing(uint32_t msg, uint32_t u32data) {
  *
  */
 void PanelsCheckThread::execute() {
-    pexchange((int*)&pc_run, true);
+    pexchange((int*)&gPcRun, true);
 #ifdef DO_USBPANEL_CHECK
     void* p;
 #endif
 
 // TODO: flush the queues during a pend
-    while (pc_run) {
+    while (gPcRun) {
         gPcTrigger.wait();
 
-        if (!pc_run) {
+        if (!gPcRun) {
             break;
         }
 
